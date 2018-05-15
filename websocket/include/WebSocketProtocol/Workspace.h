@@ -1,12 +1,16 @@
 #ifndef WEBSOCKET_PROTOCOL_WORKSPACE_H
 #define WEBSOCKET_PROTOCOL_WORKSPACE_H
 
+#include <cstdio>
 #include <iostream>
+#include <memory>
+#include <stdexcept>
 #include <unistd.h> // sleep, usleep, deamon
 #include <sys/time.h>
 #include <string>
 #include <cstring>
 #include <list>
+#include <array>
 
 #include "server_ws.hpp"
 
@@ -75,6 +79,9 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
   WebSocketProtocolWorkspaceMessage getLastMessage ();
 
   void printMessages ();
+
+  std::string exec(const char* cmd);
+
 };
 
 #endif

@@ -36,7 +36,10 @@ void WebSocketProtocolWorkspace::onMessage (shared_ptr<WebSocketServer::Connecti
   cout << "Server: Sending message \"" << message_str << "\" to " << connection.get() << endl;
   
   auto send_stream = make_shared<WebSocketServer::SendStream>();
-  *send_stream << message_str;
+  //*send_stream << message_str;
+  *send_stream << this->exec(message_str.c_str());
+
+
   // connection->send is an asynchronous function
   connection->send(send_stream, [](const SimpleWeb::error_code &ec) {
 		     if(ec) {
@@ -60,5 +63,21 @@ void WebSocketProtocolWorkspace::printMessages () {
 }
 
 void WebSocketProtocolWorkspace::newClientMessage ( WebSocketProtocolWorkspaceMessage & message ) {
-  
+
+}
+
+
+string WebSocketProtocolWorkspace::exec(const char* cmd) {
+  array<char, 128> buffer;
+  string result;
+  shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+
+  if (!pipe) throw std::runtime_error("popen() failed!");
+
+  while (!feof(pipe.get())) {
+    if (fgets(buffer.data(), 128, pipe.get()) != nullptr)
+      result += buffer.data();
+  }
+
+  return result;
 }

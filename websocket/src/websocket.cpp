@@ -33,7 +33,7 @@ int main() {
   while (1) {
     // Hier kan alles aan elkaar geknoopt worden. De berichten die binnenkomen verwerken en andere dingen weer aansturen.
     
-    p.printMessages();
+    //    p.printMessages();
 
     sleep(0);
   }
