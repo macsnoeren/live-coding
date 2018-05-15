@@ -1,0 +1,65 @@
+#include "WebSocketProtocol/Echo.h"
+#include "WebSocket.h"
+
+static int callbackWebSocketProtocolEcho ( struct libwebsocket_context *context,
+					   struct libwebsocket *wsi,
+					   enum libwebsocket_callback_reasons reason,
+					   void *user,
+					   void *in,
+					   size_t len ) {
+  
+  cout << "callbackWebSocketProtocolEcho: Called" << endl;
+
+  //per_session_data_test *test = (struct per_session_data_test*) user;
+  struct WebSocketData* pWebSocketData = (WebSocketData*) libwebsocket_context_user(context);
+  WebSocket* pWebSocket = (WebSocket*) pWebSocketData->pWebSocket;
+  
+  struct lws_protocols * prot = wsi->protocol;
+  cout << "prot (" << prot->name << ", " << prot->id << ")" << endl;
+
+  pWebSocket->test();
+
+  //struct per_session_data_test *test = (struct per_session_data_test*) user;
+  //int* number = (int*) libwebsocket_context_user(context); // Get the user_space/user data
+
+  if ( reason == LWS_CALLBACK_ESTABLISHED ) {
+    printf("connection established\n");
+    //test->a = 10;
+
+  } else if ( reason == LWS_CALLBACK_RECEIVE ) {
+    unsigned char *buf = (unsigned char*)
+      malloc(LWS_SEND_BUFFER_PRE_PADDING + len
+	     + LWS_SEND_BUFFER_POST_PADDING);
+    
+    int i;
+    
+    for (i=0; i < len; i++) {
+      buf[LWS_SEND_BUFFER_PRE_PADDING + i ] = 
+	((char *) in)[i];
+    }
+    
+    printf("CLASSE: received data: %s, replying: %.*s\n", (char *) in,
+	   (int) len, buf + LWS_SEND_BUFFER_PRE_PADDING);
+    
+    libwebsocket_write(wsi, &buf[LWS_SEND_BUFFER_PRE_PADDING],
+		       len, LWS_WRITE_TEXT);
+    
+    free(buf);
+
+  } else {
+    
+  }
+   
+  return 0;
+}
+
+
+//WebSocketProtocolEcho::WebSocketProtocolEcho(string sName): WebSocketProtocol(sName) {
+WebSocketProtocolEcho::WebSocketProtocolEcho(string sName): WebSocketProtocol(sName) {
+  this->m_libProtocol.callback              = callbackWebSocketProtocolEcho;
+  this->m_libProtocol.per_session_data_size = sizeof(struct WebSocketProtocolEchoSessionData);
+}
+
+WebSocketProtocolEcho::~WebSocketProtocolEcho() {
+
+}  
