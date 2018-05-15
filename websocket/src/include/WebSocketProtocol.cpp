@@ -1,5 +1,7 @@
 #include "WebSocketProtocol.h"
 
+using namespace std;
+
 void _onMessage (shared_ptr<WebSocketServer::Connection> connection, shared_ptr<WebSocketServer::Message> message, void* user_space) {
     WebSocketProtocol *p = (WebSocketProtocol*) user_space;
     p->onMessage(connection, message);

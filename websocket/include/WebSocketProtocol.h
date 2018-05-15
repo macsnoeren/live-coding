@@ -11,7 +11,6 @@
 
 #include "config.h"
 
-using namespace std;
 using WebSocketServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
 
 /*! \brief     This abstract class implements a specific protocol for the 
@@ -29,24 +28,24 @@ class WebSocketProtocol {
 
   WebSocketServer & m_wsServer;
 
-  string m_sEndpointName;
+  std::string m_sEndpointName;
 
   SimpleWeb::SocketServerBase<boost::asio::basic_stream_socket<boost::asio::ip::tcp> >::Endpoint * m_wsEndpoint;
     
  public: 
   
   /*! Constructor function. Note that this class will be used as base class. It is not intented to instantiate this class on its own. */
-  explicit WebSocketProtocol (WebSocketServer &server, string sEndpointName);
+  explicit WebSocketProtocol (WebSocketServer &server, std::string sEndpointName);
   
   /*! Destructor. A virtual function, because it will be probably overloaded by other classes. */
   virtual ~WebSocketProtocol();
 
-  virtual string getEndpointName () { return m_sEndpointName; }
+  virtual std::string getEndpointName () { return m_sEndpointName; }
 
-  virtual void onOpen    (shared_ptr<WebSocketServer::Connection> connection);
-  virtual void onClose   (shared_ptr<WebSocketServer::Connection> connection, int status);
-  virtual void onError   (shared_ptr<WebSocketServer::Connection> connection, const SimpleWeb::error_code &ec);
-  virtual void onMessage (shared_ptr<WebSocketServer::Connection> connection, shared_ptr<WebSocketServer::Message> message);
+  virtual void onOpen    (std::shared_ptr<WebSocketServer::Connection> connection);
+  virtual void onClose   (std::shared_ptr<WebSocketServer::Connection> connection, int status);
+  virtual void onError   (std::shared_ptr<WebSocketServer::Connection> connection, const SimpleWeb::error_code &ec);
+  virtual void onMessage (std::shared_ptr<WebSocketServer::Connection> connection, std::shared_ptr<WebSocketServer::Message> message);
 
 
 };

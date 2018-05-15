@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.0)
 
-project (DiGiKids-WebSocket-Server)
+project (Live-Coding-WebSocket-Server)
 
 set (Example_VERSION_MAJOR 0)
 set (Example_VERSION_MINOR 1)
@@ -49,7 +49,8 @@ endif()
 target_link_libraries(simple-websocket-server INTERFACE ${OPENSSL_LIBRARIES})
 target_include_directories(simple-websocket-server INTERFACE ${OPENSSL_INCLUDE_DIR})
 
-add_executable(websocket websocket.cpp include/WebSocketProtocol.cpp include/WebSocketProtocol/Echo.cpp include/WebSocketProtocol/Prog.cpp)
+add_executable(websocket websocket.cpp include/WebSocketProtocol.cpp include/WebSocketProtocol/Echo.cpp
+               include/WebSocketProtocol/Workspace.cpp)
 target_link_libraries(websocket simple-websocket-server)
 target_link_libraries(websocket ${Boost_LIBRARIES})
 target_include_directories(websocket PRIVATE ${Boost_INCLUDE_DIR})

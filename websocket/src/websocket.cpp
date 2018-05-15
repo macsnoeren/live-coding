@@ -8,7 +8,7 @@
 #include "server_ws.hpp"
 #include "WebSocketProtocol.h"
 #include "WebSocketProtocol/Echo.h"
-#include "WebSocketProtocol/Prog.h"
+#include "WebSocketProtocol/Workspace.h"
 
 using namespace std;
 using WebSocketServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
@@ -18,7 +18,7 @@ int main() {
   server.config.port = 3000;
 
   WebSocketProtocolEcho e(server, "echo");
-  WebSocketProtocolProg p(server, "prog");
+  WebSocketProtocolWorkspace p(server, "workspace");
 
   thread server_thread([&server]() {
     // Start WS-server
