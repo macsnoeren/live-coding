@@ -1,2 +1,5 @@
 # ignore all xemacs temporary files
 *~
+
+# ignore everything in the build files
+**/build
