@@ -24,6 +24,11 @@ void WebSocketProtocolProg::onError   (shared_ptr<WebSocketServer::Connection> c
 void WebSocketProtocolProg::onMessage (shared_ptr<WebSocketServer::Connection> connection, shared_ptr<WebSocketServer::Message> message) {
   auto message_str = message->string();
   
+  WebSocketProtocolProgMessage wsppm;
+  wsppm.raw = message_str;
+  settimeofday(&wsppm.timestamp, NULL);
+  this->addMessage(wsppm);
+
   cout << "Server: Message received: \"" << message_str << "\" from " << connection.get() << endl;
   
   cout << "Server: Sending message \"" << message_str << "\" to " << connection.get() << endl;
@@ -44,4 +49,10 @@ WebSocketProtocolProgMessage WebSocketProtocolProg::getLastMessage () {
   WebSocketProtocolProgMessage message;
 
   return message;
+}
+
+void WebSocketProtocolProg::printMessages () {
+  for (auto v : this->m_vMessages) {
+    std::cout << "=> " << v.raw << "\n";
+  }
 }
