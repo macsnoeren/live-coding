@@ -17,6 +17,7 @@
 #include "config.h"
 
 #include "WebSocketProtocol.h"
+#include "WebSocketMessage.h"
 
 using WebSocketServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
 

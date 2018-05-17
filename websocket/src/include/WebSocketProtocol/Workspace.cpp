@@ -25,29 +25,8 @@ void WebSocketProtocolWorkspace::onError   (shared_ptr<WebSocketServer::Connecti
 
 void WebSocketProtocolWorkspace::onMessage (shared_ptr<WebSocketServer::Connection> connection, shared_ptr<WebSocketServer::Message> message) {
   auto message_str = message->string();
-  
-  WebSocketProtocolWorkspaceMessage wsppm;
-  wsppm.raw = message_str;
-  settimeofday(&wsppm.timestamp, NULL);
-  this->addMessage(wsppm);
 
-  cout << "Server: Message received: \"" << message_str << "\" from " << connection.get() << endl;
-  
-  cout << "Server: Sending message \"" << message_str << "\" to " << connection.get() << endl;
-  
-  auto send_stream = make_shared<WebSocketServer::SendStream>();
-  //*send_stream << message_str;
-  *send_stream << this->exec(message_str.c_str());
-
-
-  // connection->send is an asynchronous function
-  connection->send(send_stream, [](const SimpleWeb::error_code &ec) {
-		     if(ec) {
-		       cout << "Server: Error sending message. " <<
-			 // See http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/reference.html, Error Codes for error code meanings
-			 "Error: " << ec << ", error message: " << ec.message() << endl;
-		     }
-		   });
+  WebSocketMessage m(connection, message_str);
 }
 
 WebSocketProtocolWorkspaceMessage WebSocketProtocolWorkspace::getLastMessage () {
@@ -66,8 +45,8 @@ void WebSocketProtocolWorkspace::newClientMessage ( WebSocketProtocolWorkspaceMe
 
 }
 
-
-string WebSocketProtocolWorkspace::exec(const char* cmd) {
+// For testing only!
+string WebSocketProtocolWorkspace::exec (const char* cmd) {
   array<char, 128> buffer;
   string result;
   shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
