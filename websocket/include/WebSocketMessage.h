@@ -38,9 +38,11 @@ class WebSocketMessage {
   /*! Destructor. A virtual function, because it will be probably overloaded by other classes. */
   virtual ~WebSocketMessage();
 
-  std::string getRawMessage () { return this->m_sRawMessage; }
+  virtual void newMessage();
 
-  void sendClientMessage ( std::string sMessage );
+  virtual std::string getRawMessage () { return this->m_sRawMessage; }
+
+  virtual void sendClientMessage ( std::string sMessage );
 
 };
 

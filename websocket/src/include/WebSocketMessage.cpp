@@ -18,19 +18,22 @@ string __exec (const char* cmd) {
   return result;
 }
 
-
 WebSocketMessage::WebSocketMessage ( shared_ptr<WebSocketServer::Connection> pConnection, string sRawMessage ): m_pConnection(pConnection), m_sRawMessage(sRawMessage) {
   settimeofday(&this->m_tvTimestamp, NULL);
 
   cout << "WebSocketMessage: '" << sRawMessage << "'" << endl;
 
-  // Testing!
-  this->sendClientMessage( __exec( this->getRawMessage().c_str() ) );
+  this->newMessage();
 }
 
 WebSocketMessage::~WebSocketMessage() {
 
-}  
+}
+
+void WebSocketMessage::newMessage() {
+  cout << "WebSocketMessage\n";
+  this->sendClientMessage( __exec( this->getRawMessage().c_str() ) );
+}
 
 void WebSocketMessage::sendClientMessage (string sMessage) {
   cout << "sendClientMessage: '" << sMessage << "'" << endl;
@@ -41,7 +44,6 @@ void WebSocketMessage::sendClientMessage (string sMessage) {
   cout << "Server: Message received: \"" << sMessage << "\" from " << this->m_pConnection.get() << endl;
   
   cout << "Server: Sending message \"" << sMessage << "\" to " << this->m_pConnection.get() << endl;
-
 
   // connection->send is an asynchronous function
   this->m_pConnection->send(send_stream, [](const SimpleWeb::error_code &ec) {

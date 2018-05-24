@@ -26,23 +26,26 @@ void WebSocketProtocolWorkspace::onError   (shared_ptr<WebSocketServer::Connecti
 void WebSocketProtocolWorkspace::onMessage (shared_ptr<WebSocketServer::Connection> connection, shared_ptr<WebSocketServer::Message> message) {
   auto message_str = message->string();
 
-  WebSocketMessage m(connection, message_str);
+  WebSocketMessageWorkspace m(connection, message_str);
+  
+  this->newClientMessage(m);
 }
 
-WebSocketProtocolWorkspaceMessage WebSocketProtocolWorkspace::getLastMessage () {
-  WebSocketProtocolWorkspaceMessage message;
+WebSocketMessageWorkspace WebSocketProtocolWorkspace::getLastMessage () {
+  WebSocketMessageWorkspace message = this->m_vMessages.front();
+  this->m_vMessages.pop_front();
 
   return message;
 }
 
 void WebSocketProtocolWorkspace::printMessages () {
   for (auto v : this->m_vMessages) {
-    std::cout << "=> " << v.raw << "\n";
+    std::cout << "=> " << v.getRawMessage() << "\n";
   }
 }
 
-void WebSocketProtocolWorkspace::newClientMessage ( WebSocketProtocolWorkspaceMessage & message ) {
-
+void WebSocketProtocolWorkspace::newClientMessage ( WebSocketMessageWorkspace & message ) {
+  this->addMessage(message);
 }
 
 // For testing only!

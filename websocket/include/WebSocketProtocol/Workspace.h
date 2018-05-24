@@ -17,28 +17,9 @@
 #include "config.h"
 
 #include "WebSocketProtocol.h"
-#include "WebSocketMessage.h"
+#include "WebSocketMessage/Workspace.h"
 
 using WebSocketServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
-
-/*! The message data structure that is used to get messages from the student's
- *  and teacher's workspaces/classrooms. 
-*/
-struct WebSocketProtocolWorkspaceMessage {
-  /* Raw Message */
-  std::string raw;        // Raw data as it came to us!
-  timeval timestamp; // Timestamp when the raw data came in (calculate the latency of delivery (user-friendly)
-  
-  /* Authentication information */
-  std::string idStudent;   // ID of the workspace environment
-  std::string idTeacher;   // ID of the teacher that is connected with the student
-  std::string idClassroom; // ID of the teacher's classroom that has been created
-  std::string ip;          // IP of the student connection
-  std::string username;    // Username of the student
-  std::string token;       // Token obtained at login or sign-in
-
-  std::string message;     // The remaining message based on basic decoding
-};
 
 /*! \brief     This class implements the Workspace basics. Language specialisation
  *             should be done in specialized classed. Generic tests can be done
@@ -55,9 +36,9 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
  private:
   
  protected:
-  std::list<WebSocketProtocolWorkspaceMessage> m_vMessages;
+  std::list<WebSocketMessageWorkspace> m_vMessages;
   
-  void addMessage( WebSocketProtocolWorkspaceMessage & message ) { this->m_vMessages.push_back(message); }
+  void addMessage( WebSocketMessageWorkspace & message ) { this->m_vMessages.push_back(message); }
 
  public: 
   
@@ -73,11 +54,11 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
   virtual void onError   (std::shared_ptr<WebSocketServer::Connection> connection, const SimpleWeb::error_code &ec);
   virtual void onMessage (std::shared_ptr<WebSocketServer::Connection> connection, std::shared_ptr<WebSocketServer::Message> message);
 
-  virtual void newClientMessage ( WebSocketProtocolWorkspaceMessage & message );
+  virtual void newClientMessage ( WebSocketMessageWorkspace & message );
 
   bool isMessageAvailable() { return this->m_vMessages.size() > 0; }
 
-  WebSocketProtocolWorkspaceMessage getLastMessage ();
+  WebSocketMessageWorkspace getLastMessage ();
 
   void printMessages ();
 
