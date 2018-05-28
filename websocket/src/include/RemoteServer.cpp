@@ -9,32 +9,56 @@ void _threadClientMain ( RemoteServer* rs, struct sockaddr_in sClientAddr, int i
   printf("RemoteServer: got connection from %s port %d\n",
 	 inet_ntoa(sClientAddr.sin_addr), ntohs(sClientAddr.sin_port));
 
-  while ( rs->isRunning() ) {
+  bool bActiveConnection = true;
+
+  while ( rs->isRunning() && bActiveConnection ) {
     string sRequest;
 
     if ( rs->pullRequest(sRequest) ) {
+      cout << "RemoteServer: Got request and sending it to the remote client that is connected!\n";
+
       send(iClientFd, sRequest.c_str(), sRequest.size(), 0);
+
+      const int bufferLength = 8096;
+      char buffer[bufferLength];
+
+      bzero(buffer, bufferLength);
+
+      // TODO: Reading large data when buffer is to small needs to be done
+      // TODO: Request should have an ID so it can be identified to which workspace it should
+      //       be sent.
+      int n = read(iClientFd, buffer, bufferLength-1);
+
+      if ( n < 0 ) {
+	rs->error("ERROR reading from socket");
+	bActiveConnection = false;
+
+      } else {
+	cout << "RemoteServer: Got answer from remote client on request!\n";
+	printf("Answer:\n %s\n---------------\n", buffer);
+
+	string sAnswer = buffer;
+
+	rs->pushAnswers(sAnswer);
+
+	// TODO: Check the result and maybe push the request again on the stack
+	//       Return it to the RemoteServer
+	//       Now just sent it back to all workspaces for example!
+      }
+
     }
-
-    /*
-    bzero(buffer,256);
-
-    n = read(newsockfd,buffer,255);
-    if (n < 0) error("ERROR reading from socket");
-    printf("Here is the message: %s\n",buffer);
-    
-    close(iClientFd);
-    */
 
     sleep(0);
   }
+
+  close(iClientFd);
 
   cout << "Thread client stopped!\n";
 }
 
 // TODO: check if threads have been ended and clean them up.
 void _threadServerMain ( RemoteServer* rs, bool * bClientsConnected ) {
-  cout << "Thread started!\n";
+  cout << "RemoteServer: Started and accepting clients.\n";
 
   vector<thread> threadClients;
 
@@ -42,12 +66,10 @@ void _threadServerMain ( RemoteServer* rs, bool * bClientsConnected ) {
     struct sockaddr_in sClientAddr;
     socklen_t slClientLen = sizeof(sClientAddr);
 
-    cout << "Thread running!\n" << endl;
-
     int iClientFd = accept(rs->getSockFd(), (struct sockaddr *) &sClientAddr, &slClientLen);
 
     if ( iClientFd < 0) {
-      rs->error("RemoteServer: ERROR on accept");
+      rs->error("RemoteServer: Error occured during accepting the client.");
 
     } else {
       threadClients.push_back( thread( _threadClientMain, rs, sClientAddr, iClientFd ) );
@@ -58,7 +80,7 @@ void _threadServerMain ( RemoteServer* rs, bool * bClientsConnected ) {
     sleep(0);
   }
 
-  cout << "Waiting on the clients!" << endl;
+  cout << "RemoteServer: Stopping and closing all clients." << endl;
 
   for ( unsigned int i=0; i < threadClients.size(); ++i ) {
     threadClients.at(i).join();
@@ -78,7 +100,7 @@ RemoteServer::~RemoteServer () {
 
 void RemoteServer::error(const char *msg) {
   perror(msg);
-  exit(1); // TODO: Please change this to a correct error handling!
+  //exit(1); // TODO: Please change this to a correct error handling!
 }
 
 bool RemoteServer::start () {
@@ -132,18 +154,20 @@ bool RemoteServer::stop () {
 
 bool RemoteServer::pushRequest (string & sRequest) {
   if ( !this->m_bClientsConnected ) {
-    cout << "RemoteServer: No clients to server your sRequest";
+    cout << "RemoteServer: No remote clients are available to serve request, so denying your request ... sorry!";
     return false;    
   }
 
   if ( this->m_qRequests.size() > 10 ) {
-    cout << "RemoteServer: Too many requests in the queue (" << m_qRequests.size() << ")!" << endl;
+    cout << "RemoteServer: Cannot accept your request due to too many requests in the queue (" << m_qRequests.size() << ")!" << endl;
     return false;
   }
 
   this->m_mqRequests.lock();
   this->m_qRequests.push(sRequest);
   this->m_mqRequests.unlock();
+
+  cout << "RemoteServer: Accepted a new request (queue: " << m_qRequests.size() << ")." << endl;
   
   return true;
 }
@@ -157,6 +181,29 @@ bool RemoteServer::pullRequest ( string & sRequest ) {
   sRequest = this->m_qRequests.front();
   this->m_qRequests.pop();
   this->m_mqRequests.unlock();
+
+  return true;
+}
+
+bool RemoteServer::pushAnswers (string & sRequest) {
+  this->m_mqAnswers.lock();
+  this->m_qAnswers.push(sRequest);
+  this->m_mqAnswers.unlock();
+
+  cout << "RemoteServer: Accepted a new answer (queue: " << m_qAnswers.size() << ")." << endl;
+  
+  return true;
+}
+
+bool RemoteServer::pullAnswers ( string & sRequest ) {
+  if ( this->m_qAnswers.empty() ) {
+    return false;
+  }
+
+  this->m_mqAnswers.lock();
+  sRequest = this->m_qAnswers.front();
+  this->m_qAnswers.pop();
+  this->m_mqAnswers.unlock();
 
   return true;
 }

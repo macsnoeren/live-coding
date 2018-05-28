@@ -45,6 +45,10 @@ class RemoteServer {
   std::queue<std::string> m_qRequests;
   std::mutex m_mqRequests;
 
+  // TODO: Not yet used, but is required. Also create a structure with a message ID etc.
+  std::queue<std::string> m_qAnswers;
+  std::mutex m_mqAnswers;
+
  public: 
 
   void error (const char *msg);
@@ -66,6 +70,12 @@ class RemoteServer {
   bool pushRequest ( std::string & sRequest );
 
   bool pullRequest ( std::string & sRequest );
+
+  bool pushAnswers ( std::string & sRequest );
+
+  bool pullAnswers ( std::string & sRequest );
+
+  bool isAnswerAvailable () { return this->m_qAnswers.size() > 0; }
 
   bool checkClientsConnected () { return this->m_bClientsConnected; }
 

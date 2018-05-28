@@ -33,7 +33,10 @@ function onBodyLoaded () {
 
 /* Function that ends the loading screen and startup the workspace. */
 function endLoadingScreen () {
-  workspaceStart();
+  $("#ws-loader-container").html("<h3><b>Succes!!</b></h3>");
+  $("#ws-progress-bar").width(600);
+  $(".ws-loader").fadeOut(2000, function () { workspaceStart(); });
+  //workspaceStart();
 }
  
 /* 
@@ -59,40 +62,48 @@ function openWebsocket () {
   websocket.onopen    = function(evt) { onWebsocketOpen(evt)    };
   websocket.onclose   = function(evt) { onWebsocketClose(evt)   };
   websocket.onmessage = function(evt) { onWebsocketMessage(evt) };
-  websocket.onerror   = function(evt) { onWebsocketError(evt)   };
+  websocket.onerror   = function(evt) { onWebsocketError(evt)   };  
+}
 
-  
+function statusWebsocket (status) {
+  $("#status").html(status);
+}
+
+function outputWebsocket (output) {
+  $("#output").html(output);
 }
 
 function closeWebsocket () {
   websocket.close();
+  statusWebsocket("Closed");
 }
 
 /* When the web socket is opened this function is called. */
 function onWebsocketOpen ( evt ) {
-  writeToScreen("CONNECTED");
-  websocketSend("WebSocket rocks");
+  websocketSend("code:1234567\n");
+  statusWebsocket("Connected");
 }
 
 function onWebsocketClose ( evt ) {
-  writeToScreen("DISCONNECTED");
+  statusWebsocket("Closed");
 }
 
 function onWebsocketMessage ( evt ) {
-  writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
+  outputWebsocket(evt.data);
 }
 
 function onWebsocketError ( evt ) {
-  writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+  statusWebsocket("Error");
 }
 
 function websocketSend ( message ) {
-  console.log("Hahahahaha");
-  writeToScreen("SENT: " + message);
   websocket.send(message);
 }
 
 function writeToScreen ( message ) {
-  //alert(message);
   $("#output").html(message);
+}
+
+function compileCode () {
+  websocketSend(editor.getValue());
 }

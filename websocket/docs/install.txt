@@ -1,0 +1,2 @@
+Websocket source
+https://github.com/eidheim/Simple-WebSocket-Server/blob/master/ws_examples.cpp

@@ -39,7 +39,7 @@ int main() {
     sleep(5);
 
     cout << "Push request!\n";
-    string sRequest = "Hoi, ik ben Maurice\n";
+    string sRequest = "{ r: \"compile\", l: \"java\", c: \"Hier komt de\nCode van de Student\" }";
     server.pushRequest(sRequest);
   }
 
