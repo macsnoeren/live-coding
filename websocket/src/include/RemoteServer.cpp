@@ -13,8 +13,9 @@ void _threadClientMain ( RemoteServer* rs, struct sockaddr_in sClientAddr, int i
 
   while ( rs->isRunning() && bActiveConnection ) {
     string sRequest;
+    string sId;
 
-    if ( rs->pullRequest(sRequest) ) {
+    if ( rs->pullRequest(sId, sRequest) ) {
       cout << "RemoteServer: Got request and sending it to the remote client that is connected!\n";
 
       send(iClientFd, sRequest.c_str(), sRequest.size(), 0);
@@ -39,7 +40,7 @@ void _threadClientMain ( RemoteServer* rs, struct sockaddr_in sClientAddr, int i
 
 	string sAnswer = buffer;
 
-	rs->pushAnswers(sAnswer);
+	rs->pushAnswers(sId, sAnswer);
 
 	// TODO: Check the result and maybe push the request again on the stack
 	//       Return it to the RemoteServer
@@ -152,7 +153,7 @@ bool RemoteServer::stop () {
   return true;
 }
 
-bool RemoteServer::pushRequest (string & sRequest) {
+bool RemoteServer::pushRequest (string & sId, string & sRequest) {
   if ( !this->m_bClientsConnected ) {
     cout << "RemoteServer: No remote clients are available to serve request, so denying your request ... sorry!";
     return false;    
@@ -163,31 +164,42 @@ bool RemoteServer::pushRequest (string & sRequest) {
     return false;
   }
 
+  RemoteServerRequest RMRequest;
+  RMRequest.id = sId;
+  RMRequest.request = sRequest;
+
   this->m_mqRequests.lock();
-  this->m_qRequests.push(sRequest);
+  this->m_qRequests.push(RMRequest);
   this->m_mqRequests.unlock();
 
-  cout << "RemoteServer: Accepted a new request (queue: " << m_qRequests.size() << ")." << endl;
+  cout << "RemoteServer: Accepted a new request with ID " << sId << " (queue: " << m_qRequests.size() << ")." << endl;
   
   return true;
 }
 
-bool RemoteServer::pullRequest ( string & sRequest ) {
+bool RemoteServer::pullRequest ( string & sId, string & sRequest ) {
   if ( this->m_qRequests.empty() ) {
     return false;
   }
 
   this->m_mqRequests.lock();
-  sRequest = this->m_qRequests.front();
+  RemoteServerRequest RMRequest = this->m_qRequests.front();
   this->m_qRequests.pop();
   this->m_mqRequests.unlock();
+
+  sId = RMRequest.id;
+  sRequest = RMRequest.request;
 
   return true;
 }
 
-bool RemoteServer::pushAnswers (string & sRequest) {
+bool RemoteServer::pushAnswers ( string & sId, string & sAnswer ) {
+  RemoteServerAnswer RMAnswer;
+  RMAnswer.id = sId;
+  RMAnswer.answer = sAnswer;
+
   this->m_mqAnswers.lock();
-  this->m_qAnswers.push(sRequest);
+  this->m_qAnswers.push(RMAnswer);
   this->m_mqAnswers.unlock();
 
   cout << "RemoteServer: Accepted a new answer (queue: " << m_qAnswers.size() << ")." << endl;
@@ -195,15 +207,18 @@ bool RemoteServer::pushAnswers (string & sRequest) {
   return true;
 }
 
-bool RemoteServer::pullAnswers ( string & sRequest ) {
+bool RemoteServer::pullAnswers ( string & sId, string & sAnswer ) {
   if ( this->m_qAnswers.empty() ) {
     return false;
   }
 
   this->m_mqAnswers.lock();
-  sRequest = this->m_qAnswers.front();
+  RemoteServerAnswer RMAnswer = this->m_qAnswers.front();
   this->m_qAnswers.pop();
   this->m_mqAnswers.unlock();
+
+  sId = RMAnswer.id;
+  sAnswer = RMAnswer.answer;
 
   return true;
 }

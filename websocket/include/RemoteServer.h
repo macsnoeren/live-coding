@@ -19,6 +19,16 @@
 
 #include "config.h"
 
+struct RemoteServerRequest {
+  std::string id;
+  std::string request;
+};
+
+struct RemoteServerAnswer {
+  std::string id;
+  std::string answer;
+};
+
 /*! \brief     Remote server class. Remote clients are able to connect with this server.
  *             The webservices requests compilation and running applications. This is
  *             executed by the remote servers.
@@ -42,11 +52,11 @@ class RemoteServer {
 
   std::thread m_threadServerMain;
 
-  std::queue<std::string> m_qRequests;
+  std::queue<RemoteServerRequest> m_qRequests;
   std::mutex m_mqRequests;
 
   // TODO: Not yet used, but is required. Also create a structure with a message ID etc.
-  std::queue<std::string> m_qAnswers;
+  std::queue<RemoteServerAnswer> m_qAnswers;
   std::mutex m_mqAnswers;
 
  public: 
@@ -67,13 +77,13 @@ class RemoteServer {
   
   int getSockFd () { return m_iSockFd; }
 
-  bool pushRequest ( std::string & sRequest );
+  bool pushRequest ( std::string & sId, std::string & sRequest );
 
-  bool pullRequest ( std::string & sRequest );
+  bool pullRequest ( std::string & sId, std::string & sRequest );
 
-  bool pushAnswers ( std::string & sRequest );
+  bool pushAnswers ( std::string & sId, std::string & sAnswer );
 
-  bool pullAnswers ( std::string & sRequest );
+  bool pullAnswers ( std::string & sId, std::string & sAnswer );
 
   bool isAnswerAvailable () { return this->m_qAnswers.size() > 0; }
 

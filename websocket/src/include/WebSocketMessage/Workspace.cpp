@@ -2,7 +2,10 @@
 
 using namespace std;
 
-WebSocketMessageWorkspace::WebSocketMessageWorkspace ( shared_ptr<WebSocketServer::Connection> pConnection, string sRawMessage ): WebSocketMessage(pConnection, sRawMessage) {
+unsigned int WebSocketMessageWorkspace::_nextId = 0; // Declaration of static value.
+
+
+WebSocketMessageWorkspace::WebSocketMessageWorkspace ( shared_ptr<WebSocketServer::Connection> pConnection, string sRawMessage ): WebSocketMessage(pConnection, sRawMessage), uintId(WebSocketMessageWorkspace::_nextId++) {
   settimeofday(&this->m_tvTimestamp, NULL);
 
   cout << "WebSocketMessageWorkspace: '" << sRawMessage << "'" << endl;

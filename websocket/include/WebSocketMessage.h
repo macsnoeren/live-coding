@@ -44,6 +44,8 @@ class WebSocketMessage {
 
   virtual void sendClientMessage ( std::string sMessage );
 
+  virtual std::shared_ptr<WebSocketServer::Connection> getConnection() { return m_pConnection; }
+
 };
 
 #endif

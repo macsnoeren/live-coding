@@ -27,16 +27,26 @@ using WebSocketServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
 class WebSocketMessageWorkspace: public WebSocketMessage {
   
  protected:
+  /*! This static variable is used to create a unique id. */
+  static unsigned int _nextId;
+
+  //ip;username;token;idstudent;idteacher;idclassroom;command;message
+
   std::string m_sIdStudent;   // ID of the workspace environment
   std::string m_sIdTeacher;   // ID of the teacher that is connected with the student
   std::string m_sIdClassroom; // ID of the teacher's classroom that has been created
   std::string m_sIp;          // IP of the student connection
   std::string m_sUsername;    // Username of the student
   std::string m_sToken;       // Token obtained at login or sign-in
+  std::string m_sCommand;     // The remaining message based on basic decoding
   std::string m_sMessage;     // The remaining message based on basic decoding
 
  public: 
   
+  /*! The unique id of this object. This id is created when the class is instantiated.
+   *  It is constant because the values are created by the detector and cannot be changed. */
+  const unsigned int uintId;
+
   /*! Constructor function. Note that this class will be used as base class. It is not intented to instantiate this class on its own. */
   explicit WebSocketMessageWorkspace (std::shared_ptr<WebSocketServer::Connection> pConnection, std::string sRawMessage );
   

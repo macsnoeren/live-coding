@@ -27,6 +27,8 @@ void WebSocketProtocolWorkspace::onMessage (shared_ptr<WebSocketServer::Connecti
   auto message_str = message->string();
 
   WebSocketMessageWorkspace m(connection, message_str);
+
+  // Check if the message is valid, if not do not push it to the newclient message function.
   
   this->newClientMessage(m);
 }
