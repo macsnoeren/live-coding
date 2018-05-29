@@ -68,7 +68,7 @@ int main() {
       a_connection->send(send_stream);
     */
 
-    sleep(0);
+    usleep(100);
   }
 
   server_thread.join();

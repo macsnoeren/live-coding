@@ -48,7 +48,7 @@ void _threadClientMain ( RemoteServer* rs, struct sockaddr_in sClientAddr, int i
 
     }
 
-    sleep(0);
+    usleep(100);
   }
 
   close(iClientFd);
@@ -77,7 +77,7 @@ void _threadServerMain ( RemoteServer* rs, bool * bClientsConnected ) {
 
     *bClientsConnected = ( threadClients.size() > 0 );
 
-    sleep(0);
+    usleep(100);
   }
 
   cout << "RemoteServer: Stopping and closing all clients." << endl;
