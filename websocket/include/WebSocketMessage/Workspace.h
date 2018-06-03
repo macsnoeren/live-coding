@@ -32,9 +32,9 @@ class WebSocketMessageWorkspace: public WebSocketMessage {
 
   //ip;username;token;idstudent;idteacher;idclassroom;command;message
 
-  std::string m_sIdStudent;   // ID of the workspace environment
-  std::string m_sIdTeacher;   // ID of the teacher that is connected with the student
-  std::string m_sIdClassroom; // ID of the teacher's classroom that has been created
+  bool m_bTeacher; // Is this the teacher that is connected?
+
+  std::string m_sIdWorkspace; // ID of the workspace environment
   std::string m_sIp;          // IP of the student connection
   std::string m_sUsername;    // Username of the student
   std::string m_sToken;       // Token obtained at login or sign-in

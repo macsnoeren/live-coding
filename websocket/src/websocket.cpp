@@ -61,9 +61,10 @@ int main() {
 	WebSocketMessageWorkspace & m = dispatchedMessages.at(i);
 	if ( to_string(m.uintId) == sId ) {
 	  cout << "FOUND MESSAGE!" << endl;
-	  // Delete the message from the vector
+	  // Delete the message from the vector!!!!
+	  // Delete the message from the vector when the timestamp is very old!
 
-	  // Send to the client
+	  // Send to the particular client
 	  auto send_stream = make_shared<WebSocketServer::SendStream>();
 	  *send_stream << sAnswer;
 	  m.getConnection()->send(send_stream);	  

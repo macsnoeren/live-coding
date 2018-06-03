@@ -11,6 +11,7 @@
 #include <cstring>
 #include <list>
 #include <array>
+#include <mutex>
 
 #include "server_ws.hpp"
 
@@ -20,6 +21,44 @@
 #include "WebSocketMessage/Workspace.h"
 
 using WebSocketServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
+
+struct WorkspaceMessage {
+  std::string command;
+  std::string workspace;
+  std::string username;
+  std::string token;
+  std::string data;
+};
+
+class WorkspaceConnection {
+
+ private:
+  std::shared_ptr<WebSocketServer::Connection> m_wsConnection;
+
+  bool m_bConnected;
+  bool m_bTeacher;
+  
+  std::string m_sIp;
+  std::string m_sUsername;
+  std::string m_sToken;
+  std::string m_sWorkspaceId;
+
+ public:
+  explicit WorkspaceConnection (std::shared_ptr<WebSocketServer::Connection> connection);
+  virtual ~WorkspaceConnection ();
+
+  std::shared_ptr<WebSocketServer::Connection> getConnection () { return this->m_wsConnection; }
+
+  void setUsername ( std::string sUsername ) { this->m_sUsername = sUsername; }
+  std::string getUsername ( ) { return this->m_sUsername; }
+
+  void setTeacher () { this->m_bTeacher = true; }
+  bool getTeacher () { return this->m_bTeacher; }
+  
+  std::string getToken () { return this->m_sToken; }
+  void setToken (std::string token) { this->m_sToken = token; }
+ 
+};
 
 /*! \brief     This class implements the Workspace basics. Language specialisation
  *             should be done in specialized classed. Generic tests can be done
@@ -34,6 +73,10 @@ using WebSocketServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
 class WebSocketProtocolWorkspace: public WebSocketProtocol {
   
  private:
+  std::vector<WorkspaceConnection*> m_vUnknown;
+  std::vector<WorkspaceConnection*> m_vTeachers;
+  std::vector<WorkspaceConnection*> m_vStudents;
+  std::mutex m_vMutex;
   
  protected:
   std::list<WebSocketMessageWorkspace> m_vMessages;
@@ -54,7 +97,15 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
   virtual void onError   (std::shared_ptr<WebSocketServer::Connection> connection, const SimpleWeb::error_code &ec);
   virtual void onMessage (std::shared_ptr<WebSocketServer::Connection> connection, std::shared_ptr<WebSocketServer::Message> message);
 
+  virtual std::string generateToken(int len);
+
   virtual void newClientMessage ( WebSocketMessageWorkspace & message );
+
+  virtual bool processMessage ( std::string & message, WorkspaceMessage & wsMessage);
+  
+  virtual bool executeMessage ( WorkspaceMessage & wsMessage, WorkspaceConnection * pWsConnection );
+
+  virtual void send ( std::shared_ptr<WebSocketServer::Connection> connection, std::string & message );
 
   bool isMessageAvailable() { return this->m_vMessages.size() > 0; }
 
@@ -63,6 +114,14 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
   void printMessages ();
 
   std::string exec(const char* cmd);
+
+  WorkspaceConnection* getWorkspaceConnection( std::shared_ptr<WebSocketServer::Connection> connection );
+
+  bool deleteConnection ( std::shared_ptr<WebSocketServer::Connection> connection );
+  bool deleteFromUnknown ( WorkspaceConnection * pWsConnection );
+  bool moveToTeachers ( WorkspaceConnection * pWsConnection );
+  bool moveToStudents ( WorkspaceConnection * pWsConnection );
+
 
 };
 
