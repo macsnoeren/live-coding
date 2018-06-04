@@ -60,6 +60,11 @@ function onWindowLoaded () {
   //setTimeout(endLoadingScreen, 1000);
 }
 
+function logout () {
+  closeWebsocket();
+  window.location.href = "index.html";
+} 
+
 function setWorkspaceInfo () {
   $('#workspaceinfo').html("Workspace (" + (teacher ? "Docent" : "Student") + "): " + workspaceId + ", " + username + " (" + token + ")" + (!teacher ? ", Teacher: " + teacherName : ""));
 }
@@ -232,6 +237,17 @@ function statusWebsocket (status) {
 
 function outputWebsocket (output) {
   $("#output").html(output);
+}
+
+/* ACE Editor Function */
+
+function loadEditorCode ( code ) {
+  editor.setValue(code);
+  editor.gotoLine(1);
+}
+
+function onChangeCompiler ( value ) {
+  //alert(value);
 }
 
 /* Helper Functions */
