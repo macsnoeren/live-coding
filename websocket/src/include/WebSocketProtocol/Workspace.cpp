@@ -2,13 +2,16 @@
 
 using namespace std;
 
-WorkspaceConnection::WorkspaceConnection ( std::shared_ptr<WebSocketServer::Connection> connection ): m_wsConnection(connection)  {
+unsigned int WorkspaceConnection::_nextId = 0; // Declaration of static value.
+
+WorkspaceConnection::WorkspaceConnection ( std::shared_ptr<WebSocketServer::Connection> connection ): m_wsConnection(connection), m_iId(WorkspaceConnection::_nextId++) {
   this->m_sIp          = "";
   this->m_bConnected   = false;
   this->m_bTeacher     = false;
   this->m_sUsername    = "unknown";
   this->m_sToken       = "";
   this->m_sWorkspaceId = "";
+  this->m_sTeacherName = "";
 }
 
 WorkspaceConnection::~WorkspaceConnection ( ) {
@@ -145,15 +148,15 @@ void WebSocketProtocolWorkspace::onMessage (shared_ptr<WebSocketServer::Connecti
   this->printMessages();
 }
 
-string WebSocketProtocolWorkspace::generateToken(int len) {
-  string token = "token";
-  /*
-  const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+string WebSocketProtocolWorkspace::generateToken(size_t len) {
+  string token(len, ' ');
+
+  const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   
-  for ( int i=0; i < len; ++i ) {
-    int pos = rand() % (int) (chars.length()-1);
-    token = token.insert(i, chars.at(pos));
-    }*/
+  for ( size_t i=0; i < len; ++i ) {
+    size_t pos = (size_t) rand() % (size_t) (chars.length()-1);
+    token.insert(i, 1, chars[pos]);
+  }
 
   cout << "Generated token: " << token << endl;
 
@@ -166,6 +169,7 @@ bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, 
     pWsConnection->setUsername(wsMessage.username);
     pWsConnection->setTeacher();
     pWsConnection->setToken( this->generateToken(50) );
+    pWsConnection->setWorkspaceId( wsMessage.workspace );
     
     string sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": true, \"token\": \"" + pWsConnection->getToken() + "\" }\n";
     if ( !this->moveToTeachers(pWsConnection) ) {
@@ -173,19 +177,41 @@ bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, 
     }
 
     this->send(pWsConnection->getConnection(), sMessage);
+
     return true;
 
   } else if ( wsMessage.command == "student-start" ) {
     pWsConnection->setUsername(wsMessage.username);
     pWsConnection->setToken( this->generateToken(50) );
-    this->moveToStudents(pWsConnection);
 
-    string sMessage = "{ \"status\": true, \"token\": \"" + pWsConnection->getToken() + "\" }\n";
-    if ( !this->moveToTeachers(pWsConnection) ) {
-      sMessage = "{ \"status\": false, \"message\": \"Internal error occured and could not register the user.\" }\n";
+    string sMessage = "";
+
+    WorkspaceConnection* pWsTeacher = this->isExistingWorkspace( wsMessage.workspace );
+    cout << "Check if the workspace exist" << endl;
+    if ( pWsTeacher != NULL ) {
+      cout << "Existing workspace!" << endl;
+      pWsConnection->setTeacherName(pWsTeacher->getUsername());
+      pWsConnection->setWorkspaceId( wsMessage.workspace );
+
+      if ( this->moveToStudents(pWsConnection) ) {
+	// Update the teacher
+	// TODO: UNIQUE USER ID!! => Connection ID??
+	sMessage = "{ \"command\": \"student-new\", \"workspace\": \"" + wsMessage.workspace + "\", \"name\": \"" + pWsConnection->getUsername() + "\", \"id\": \"" + pWsConnection->getId() + "\" }\n";
+	this->send(pWsTeacher->getConnection(), sMessage);
+
+	sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": true, \"token\": \"" + pWsConnection->getToken() + "\", \"workspace\": \"" + wsMessage.workspace + "\", \"teacher\": \"" + pWsConnection->getTeacherName() + "\" }\n";
+      
+      } else {
+	cout << "Could not move to the students." << endl;
+	sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": false, \"message\": \"Internal error occured and could not register the user.\" }\n";
+      }
+    } else { // Not existing workspace
+      cout << "Not existing workspace!" << endl;
+      sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": false, \"message\": \"Workspace does not exist!\" }\n";      
     }
 
     this->send(pWsConnection->getConnection(), sMessage);
+
     return true;
 
   } else {
@@ -194,6 +220,23 @@ bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, 
 
   return false;
 }
+
+WorkspaceConnection*  WebSocketProtocolWorkspace::isExistingWorkspace ( std::string sWorkspaceId ) {
+  WorkspaceConnection * pWsTeacher = NULL;
+
+  this->m_vMutex.lock();
+
+  for ( auto it = this->m_vTeachers.begin(); it != this->m_vTeachers.end(); ++it ) {
+    if ( (*it)->getWorkspaceId() == sWorkspaceId ) {
+      pWsTeacher = (*it);
+    }
+  }  
+
+  this->m_vMutex.unlock();
+  
+  return pWsTeacher;
+}
+
 
 bool WebSocketProtocolWorkspace::deleteConnection ( std::shared_ptr<WebSocketServer::Connection> connection ) {
 

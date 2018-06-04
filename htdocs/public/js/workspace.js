@@ -8,6 +8,7 @@ var workspaceId = "";
 var token       = "12345";
 var username    = "unknown";
 var teacher     = false;
+var teacherName = "";
 
 /* Status */
 const NOTCONNECTED     = 0;
@@ -56,11 +57,11 @@ function onWindowLoaded () {
   
   openWebsocket();
 
-  setTimeout(endLoadingScreen, 1000);
+  //setTimeout(endLoadingScreen, 1000);
 }
 
 function setWorkspaceInfo () {
-  $('#workspaceinfo').html("Workspace: " + workspaceId + ", " + username + " (" + token + ")");
+  $('#workspaceinfo').html("Workspace (" + (teacher ? "Docent" : "Student") + "): " + workspaceId + ", " + username + " (" + token + ")" + (!teacher ? ", Teacher: " + teacherName : ""));
 }
 
 /* When the body is loaded, this function is called. */
@@ -161,22 +162,41 @@ function onWebsocketMessage ( evt ) {
 
   if ( typeof(data) == "object" ) {
 
-    if ( data.command == "teacher-start" ) {
+    if ( data.command == "teacher-start" || data.command == "student-start" ) {
       if ( status == CONNECTWORKSPACE ) {
 	if ( data.status ) { // Success!
+	  teacher = ( data.command == "teacher-start" );
+	  teacherName = ( !teacher ? data.teacher : "" );
 	  token = data.token;
 	  statusWebsocket("Connected");
 	  setWorkspaceInfo();
-	  connecting = false;
-	  connected  = true;
+	  endLoadingScreen(); // workspace is ready!
 	  
 	} else { // No success!
 	  statusWebsocket("Workspace Error");
-	  connectWorkspace();
+	  alert("Workspace Error:\n\n" + data.message + "\n\nProbeer het later opnieuw!");
+
+	  window.location.href = (teacher ? "teacher.html" : "index.html");
 	}
+
       } else {
 	console.log("Got teacher-start message while I am not connecting with the workspace!");
       }
+
+    } else if ( data.command == "student-new" ) {
+      alert("New Student: " + data.name + " (" + data.id + ")");
+
+
+    } else if ( data.command == "student-del" ) {
+      alert("Delete Student: " + data.name);
+
+
+    } else if ( data.command == "student-status" ) {
+      alert("Status Student: " + data.name);
+
+
+    } else {
+      alert("Got unknown command: " + data.command);
     }
   }
 }

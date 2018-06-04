@@ -35,13 +35,19 @@ class WorkspaceConnection {
  private:
   std::shared_ptr<WebSocketServer::Connection> m_wsConnection;
 
+  /*! This static variable is used to create a unique id. */
+  static unsigned int _nextId;
+
   bool m_bConnected;
   bool m_bTeacher;
   
   std::string m_sIp;
+  const unsigned int m_iId;
+
   std::string m_sUsername;
   std::string m_sToken;
   std::string m_sWorkspaceId;
+  std::string m_sTeacherName;
 
  public:
   explicit WorkspaceConnection (std::shared_ptr<WebSocketServer::Connection> connection);
@@ -54,10 +60,16 @@ class WorkspaceConnection {
 
   void setTeacher () { this->m_bTeacher = true; }
   bool getTeacher () { return this->m_bTeacher; }
+  void setTeacherName ( std::string sTeacherName ) { this->m_sTeacherName = sTeacherName; }
+  std::string getTeacherName () { return this->m_sTeacherName; }
   
   std::string getToken () { return this->m_sToken; }
   void setToken (std::string token) { this->m_sToken = token; }
+
+  void setWorkspaceId ( std::string sWorkspaceId ) { this->m_sWorkspaceId = sWorkspaceId; }
+  std::string getWorkspaceId () { return m_sWorkspaceId; }
  
+  std::string getId() { return std::to_string(this->m_iId); }  
 };
 
 /*! \brief     This class implements the Workspace basics. Language specialisation
@@ -97,7 +109,7 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
   virtual void onError   (std::shared_ptr<WebSocketServer::Connection> connection, const SimpleWeb::error_code &ec);
   virtual void onMessage (std::shared_ptr<WebSocketServer::Connection> connection, std::shared_ptr<WebSocketServer::Message> message);
 
-  virtual std::string generateToken(int len);
+  virtual std::string generateToken(size_t len);
 
   virtual void newClientMessage ( WebSocketMessageWorkspace & message );
 
@@ -121,6 +133,9 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
   bool deleteFromUnknown ( WorkspaceConnection * pWsConnection );
   bool moveToTeachers ( WorkspaceConnection * pWsConnection );
   bool moveToStudents ( WorkspaceConnection * pWsConnection );
+
+  WorkspaceConnection* isExistingWorkspace ( std::string sWorkspaceId );
+
 
 
 };
