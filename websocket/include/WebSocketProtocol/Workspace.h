@@ -134,9 +134,7 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
   bool moveToTeachers ( WorkspaceConnection * pWsConnection );
   bool moveToStudents ( WorkspaceConnection * pWsConnection );
 
-  WorkspaceConnection* isExistingWorkspace ( std::string sWorkspaceId );
-
-
+  WorkspaceConnection* isExistingWorkspace ( std::string sWorkspaceId );  
 
 };
 

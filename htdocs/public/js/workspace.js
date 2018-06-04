@@ -128,6 +128,8 @@ function closeWebsocket () {
     
   } else {
     console.log("Cannot close a socket that is not connected or is in a connecting state!");
+    alert("Connection Error\nPlease try again later.");
+    window.location.href = (teacher ? "teacher.html" : "index.html");
   }
 }
 
@@ -199,6 +201,8 @@ function onWebsocketMessage ( evt ) {
     } else if ( data.command == "student-status" ) {
       alert("Status Student: " + data.name);
 
+    } else if ( data.command == "compile-result" ) {
+      $("output").html("<pre>" + data.result + "</pre>");
 
     } else {
       alert("Got unknown command: " + data.command);
