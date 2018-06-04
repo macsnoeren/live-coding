@@ -149,7 +149,7 @@ void WebSocketProtocolWorkspace::onMessage (shared_ptr<WebSocketServer::Connecti
 }
 
 string WebSocketProtocolWorkspace::generateToken(size_t len) {
-  string token(len, ' ');
+  string token;
 
   const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   
@@ -341,6 +341,7 @@ void WebSocketProtocolWorkspace::newClientMessage ( WebSocketMessageWorkspace & 
 
 bool WebSocketProtocolWorkspace::processMessage ( string & message, WorkspaceMessage & wsMessage) {
   cout << "Processing message '" << message << "'" << endl;
+  cout << "--------------------------------" << endl;
 
   if ( message.at(message.length()-1) == '\n' ) {
     message = message.substr(0, message.length()-1);
@@ -383,6 +384,8 @@ bool WebSocketProtocolWorkspace::processMessage ( string & message, WorkspaceMes
     wsMessage.token = message.substr(posPrev, pos - posPrev);
     cout << "Found token: " << wsMessage.token << endl;
 
+    cout << "--------------------------------" << endl;
+
     // Get the data
     wsMessage.data = message.substr(pos+1, message.length() - pos);
     cout << "Found data: " << wsMessage.data << endl;
@@ -390,6 +393,8 @@ bool WebSocketProtocolWorkspace::processMessage ( string & message, WorkspaceMes
   } else {
     wsMessage.token = message.substr(posPrev, message.length() - posPrev);
   }  
+
+  cout << "--------------------------------" << endl;
   
   return true;
 }

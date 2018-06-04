@@ -214,7 +214,7 @@ function writeToScreen ( message ) {
 }
 
 function compileCode () {
-  websocketSend(editor.getValue());
+  send2Server("compile-java", editor.getValue());
 }
 
 function processMessage (command, data) {
