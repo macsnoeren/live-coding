@@ -95,6 +95,7 @@ int main() {
 	  // sAnswer must be json
 	  p.send2Token(sId, sAnswer);
 	  vWaitingCompileRequests.erase( vWaitingCompileRequests.begin() + i );
+	  // send also this message to teacher as student-update
 	}
       }
     }

@@ -15,6 +15,9 @@ void _threadClientMain ( RemoteServer* rs, struct sockaddr_in sClientAddr, int i
     string sRequest;
     string sId;
 
+    // TODO: Extend pull request and answer with command and param that can be compile and execution
+    //       For different kind of compilers. And also console access ;) for access ;).
+
     if ( rs->pullRequest(sId, sRequest) ) {
       cout << "RemoteServer: Got request and sending it to the remote client that is connected!\n";
 

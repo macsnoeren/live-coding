@@ -194,7 +194,6 @@ function onWebsocketMessage ( evt ) {
       addStudent(data);
       //alert("New Student: " + data.name + " (" + data.id + ")");
 
-
     } else if ( data.command == "student-del" ) { // Student is gone!
       delStudent(data);
       //alert("Delete Student: " + data.name);
@@ -205,6 +204,9 @@ function onWebsocketMessage ( evt ) {
 
     } else if ( data.command == "compiler-result" ) {
       loadCompileResult(data.result);
+      if ( data.status ) {
+	celebrateShow("Je hebt de opdracht goed volbracht door het programma foutloos te compileren!");
+      }
 
     } else if ( data.command == "compile-java" ) { // Information on the compile-java command!
       loadCompileResult(data.message);
@@ -273,6 +275,29 @@ function onChangeCompiler ( value ) {
   //alert(value);
 }
 
+/* Confetti and celebration */
+
+// WERKT NOG NIET HELEMAAL
+
+function celebrateShow ( message ) {
+  window.addEventListener('resize', function(event){
+			    confetti.resize();
+			  });
+  $('#confetti').show();
+  confetti.start();
+  $('#celebrationtext').html(message);
+  $("#celebrationModal").on("hidden.bs.modal", function () { celebrateHide(); });
+  $('#celebrationModal').modal('show');
+  //setTimeout(celebrateHide, 3000);
+}
+
+function celebrateHide () {
+  if ( confetti != null ) {
+    confetti.stop();
+    $('#confetti').hide();
+  }
+}
+
 /* Helper Functions */
 
 function getUrlVar(key){
@@ -291,3 +316,4 @@ function parseJson ( json ) {
 
   return null;
 }
+

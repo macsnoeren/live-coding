@@ -97,6 +97,23 @@ void WebSocketProtocolWorkspace::onOpen (shared_ptr<WebSocketServer::Connection>
 
 void WebSocketProtocolWorkspace::onClose   (shared_ptr<WebSocketServer::Connection> connection, int status) {
   cout << "Server: Closed connection " << connection.get() << " with status code " << status << endl;
+
+  WorkspaceConnection* pWsConnection = this->getWorkspaceConnection(connection);
+
+  // HIER BEN IK
+
+  if ( pWsConnection != NULL ) {
+    if ( pWsConnection->getTeacher() ) { // Send message to all students and remove them all including the teacher
+      //string sMessage = ??
+      //this->sendWorkspace(pWsConnection->getWorkspaceId(), "teacher-quit", sMessage);
+      //this->deleteStudentsFromWorkspace(pWsConnection->getWorkspaceId());
+
+    } else { // Send the teacher that this student has been removed
+      //string sMessage = ??
+      //this->sendTeacher(pWsConnection->getWorkspaceId(), "student-del", sMessage);
+    }
+  }
+
   this->deleteConnection(connection);
 }
 
@@ -220,7 +237,10 @@ bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, 
     sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": false, \"message\": \"Your request has been received...\" }\n";      
     this->send(pWsConnection->getConnection(), sMessage);
     return true;
-    
+
+  } else if ( wsMessage.command == "teacher-push" ) { // Teacher wants to push code
+    //sMessage = ??
+    //this->sendWorkspace(pWsConnection->getWorkspaceId(), "teacher-push", sMessage);
 
   } else {
     cout << "Could not execute the message!" << endl;
