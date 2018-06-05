@@ -191,23 +191,44 @@ function onWebsocketMessage ( evt ) {
       }
 
     } else if ( data.command == "student-new" ) {
-      alert("New Student: " + data.name + " (" + data.id + ")");
+      addStudent(data);
+      //alert("New Student: " + data.name + " (" + data.id + ")");
 
 
-    } else if ( data.command == "student-del" ) {
-      alert("Delete Student: " + data.name);
+    } else if ( data.command == "student-del" ) { // Student is gone!
+      delStudent(data);
+      //alert("Delete Student: " + data.name);
 
+    } else if ( data.command == "student-status" ) { // Update of a student or students
+      updateStudent(data);
+      //alert("Status Student: " + data.name);
 
-    } else if ( data.command == "student-status" ) {
-      alert("Status Student: " + data.name);
+    } else if ( data.command == "compiler-result" ) {
+      loadCompileResult(data.result);
 
-    } else if ( data.command == "compile-result" ) {
-      $("output").html("<pre>" + data.result + "</pre>");
+    } else if ( data.command == "compile-java" ) { // Information on the compile-java command!
+      loadCompileResult(data.message);
 
     } else {
       alert("Got unknown command: " + data.command);
     }
   }
+}
+
+function addStudent ( data ) {
+
+}
+
+function delStudent ( data ) {
+
+}
+
+function updateStudent ( data ) {
+
+}
+
+function updateStudentDisplay ( ) {
+
 }
 
 function onWebsocketError ( evt ) {
@@ -218,12 +239,10 @@ function websocketSend ( message ) {
   websocket.send(message);
 }
 
-function writeToScreen ( message ) {
-  $("#output").html(message);
-}
-
-function compileCode () {
+function compileCode (event) {
+  event.preventDefault();
   send2Server("compile-java", editor.getValue());
+  //window.location.href = "#output"; // Go to anchor
 }
 
 function processMessage (command, data) {
@@ -239,15 +258,15 @@ function statusWebsocket (status) {
   $("#status").html(status);
 }
 
-function outputWebsocket (output) {
-  $("#output").html(output);
-}
-
 /* ACE Editor Function */
 
 function loadEditorCode ( code ) {
   editor.setValue(code);
   editor.gotoLine(1);
+}
+
+function loadCompileResult ( result ) {
+  $('#output').html("<pre class=\"text-white\">" + result + "</pre>");
 }
 
 function onChangeCompiler ( value ) {

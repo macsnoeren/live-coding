@@ -4,5 +4,7 @@
 
 sleep 2
 
-./remoteclient.pl
+./remoteclient.pl&
+
+top
 

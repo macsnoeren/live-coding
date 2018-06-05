@@ -6,6 +6,7 @@ use warnings;
 print "Remote client is started!\n";
 
 use IO::Socket::INET;
+use JSON;
 
 # auto-flush on socket
 $| = 1;
@@ -29,11 +30,19 @@ while (1) {
     print FILE $response;
     close(FILE);
 
-    my $result = `gcc code.c 2>&1` || "Geen fouten gevonden!!!! (TODO: Runnen applicatie / Unit testen doen??)\n";
+    my $result = `gcc code.c 2>&1`;
 
-    $result =~ s/\n/<br\/>\n/g;
+    #$result =~ s/\n/<br\/>\n/g;
+
+    $result = encode_json(
+			  { command => "compiler-result",
+			    status  => ($result ? 0 : 1),
+			    result  => ($result ? $result : "Geen fouten gevonden!!!! (TODO: Runnen applicatie / Unit testen doen??)\n"),
+			  }
+			 );
 
     my $size = $socket->send($result);
+
     print "Result:\n$result\n---------------\n";
 
   } else {

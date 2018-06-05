@@ -131,7 +131,7 @@ void WebSocketProtocolWorkspace::onMessage (shared_ptr<WebSocketServer::Connecti
   if ( this->processMessage(sMessage, wsMessage) ) {
     if ( !this->executeMessage(wsMessage, pWsConnection) ) {
       cout << "Could not execute the request!" << endl;
-      string sMessage = "{ \"status\": false, \"message\": \"Could not execute your request!\" }\n";
+      string sMessage = "{ \"command\": \"" + wsMessage.command + "\"status\": false, \"message\": \"Could not execute your request!\" }\n";
       this->send(connection, sMessage);
     }
 
@@ -165,13 +165,16 @@ string WebSocketProtocolWorkspace::generateToken(size_t len) {
 
 bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, WorkspaceConnection * pWsConnection ) {
   cout << "Execute message....\n";
+
+  string sMessage = "";
+
   if ( wsMessage.command == "teacher-start" ) {
     pWsConnection->setUsername(wsMessage.username);
     pWsConnection->setTeacher();
     pWsConnection->setToken( this->generateToken(50) );
     pWsConnection->setWorkspaceId( wsMessage.workspace );
     
-    string sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": true, \"token\": \"" + pWsConnection->getToken() + "\" }\n";
+    sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": true, \"token\": \"" + pWsConnection->getToken() + "\" }\n";
     if ( !this->moveToTeachers(pWsConnection) ) {
       sMessage = "{ \"status\": false, \"message\": \"Internal error occured and could not register the user.\" }\n";
     }
@@ -183,8 +186,6 @@ bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, 
   } else if ( wsMessage.command == "student-start" ) {
     pWsConnection->setUsername(wsMessage.username);
     pWsConnection->setToken( this->generateToken(50) );
-
-    string sMessage = "";
 
     WorkspaceConnection* pWsTeacher = this->isExistingWorkspace( wsMessage.workspace );
     cout << "Check if the workspace exist" << endl;
@@ -214,12 +215,74 @@ bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, 
 
     return true;
 
+  } else if ( wsMessage.command == "compile-java" || wsMessage.command == "compile-java-8" ) {    
+    this->addCompileRequest(wsMessage);
+    sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": false, \"message\": \"Your request has been received...\" }\n";      
+    this->send(pWsConnection->getConnection(), sMessage);
+    return true;
+    
+
   } else {
     cout << "Could not execute the message!" << endl;
   }
 
   return false;
 }
+
+WorkspaceConnection* WebSocketProtocolWorkspace::getConnectionFromToken( string sToken ) {
+  WorkspaceConnection* pWsConnection = NULL;
+
+  this->m_vMutex.lock();
+  for ( unsigned int i=0; i < this->m_vUnknown.size(); ++i ) {
+    if ( this->m_vUnknown.at(i)->getToken() == sToken ) {
+      pWsConnection = this->m_vUnknown.at(i);
+      cout << "Found connection in unknown. (" << pWsConnection << ")" << endl;
+      cout << "Namely 1: " << this->m_vUnknown.at(i)->getUsername() << endl;
+      cout << "Namely 2: " << pWsConnection->getUsername() << endl;
+      this->m_vMutex.unlock();
+      return pWsConnection;
+    }
+  }
+
+  for ( unsigned int i=0; i < this->m_vTeachers.size(); ++i ) {
+    if ( sToken == this->m_vTeachers.at(i)->getToken() ) {
+      pWsConnection = this->m_vTeachers.at(i);
+      cout << "Found connection in teacher." << endl;
+      this->m_vMutex.unlock();
+      return pWsConnection;
+    }
+  }
+
+  for ( unsigned int i=0; i < this->m_vStudents.size(); ++i ) {
+    if ( sToken == this->m_vStudents.at(i)->getToken() ) {
+      pWsConnection = this->m_vStudents.at(i);
+      cout << "Found connection in student." << endl;
+      this->m_vMutex.unlock();
+      return pWsConnection;
+    }
+  }
+
+  this->m_vMutex.unlock();
+
+  cout << "Did not find any connection." << endl;
+
+  return NULL;
+}
+
+bool WebSocketProtocolWorkspace::send2Token(std::string sToken, std::string sMessage) {
+  cout << "Send message to token " << sToken << endl;
+
+  WorkspaceConnection* pWsConnection = this->getConnectionFromToken(sToken);
+
+  if ( pWsConnection != NULL ) {
+    this->send(pWsConnection->getConnection(), sMessage);
+    return true;
+
+  } else {
+    return false;
+  }
+}
+
 
 WorkspaceConnection*  WebSocketProtocolWorkspace::isExistingWorkspace ( std::string sWorkspaceId ) {
   WorkspaceConnection * pWsTeacher = NULL;

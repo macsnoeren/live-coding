@@ -3,6 +3,7 @@
 #include <sys/time.h>
 #include <string>
 #include <cstring>
+#include <algorithm> // replace
 
 #include "config.h"
 #include "RemoteServer.h"
@@ -13,6 +14,26 @@
 
 using namespace std;
 using WebSocketServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
+
+string jsonEscape ( string json ) {
+  string chars = "\\/'\"";
+
+  for ( size_t i=0; i < json.size(); ++i ) { // Search the full string
+    for ( size_t j=0; j < chars.size(); ++j ) { // Search for the special chars
+      if ( json.at(i) == chars.at(j) ) { // Found char, add a slash before char and add ++i
+	json = json.insert(i, "\\"); 
+	++i;
+
+      } else if ( json.at(i) == '\n' ) {
+	json.at(i) = ' ';
+	json.insert(i, "<br>");
+	i += 4; // size of <br>
+      }
+    }
+  }
+
+  return json;
+}
 
 int main() {
   WebSocketServer server;
@@ -35,42 +56,47 @@ int main() {
   RemoteServer rm(20000);
   rm.start();
 
-  vector<WebSocketMessageWorkspace> dispatchedMessages;
+  // Waiting compiler requests
+  std::vector<WorkspaceMessage> vWaitingCompileRequests;
 
   while (1) {
     // Hier kan alles aan elkaar geknoopt worden. De berichten die binnenkomen verwerken en andere dingen weer aansturen.
 
+
     // Dispatch the messages to the remote servers if available
-    if ( p.isMessageAvailable() ) {
-      WebSocketMessageWorkspace message = p.getLastMessage();
-      string sRequest = message.getRawMessage() + "\n";
-      string sId      = to_string(message.uintId);
-      rm.pushRequest(sId, sRequest);
-      dispatchedMessages.push_back(message);
-      // Push the result back to the webservice      
+    if ( p.isCompileRequestAvailable() ) {
+      WorkspaceMessage wm = p.getCompileRequest();
+      
+      if ( rm.pushRequest(wm.token, wm.data) ) {
+	vWaitingCompileRequests.push_back(wm);
+	
+      } else {
+	string sMessage = "{ \"command\": \"" + wm.command + "\", \"status\": \"false\", \"message\": \"ERROR: No compilers available.\" }\n";      
+	p.send2Token(wm.token, sMessage);
+      }
     }
 
     // Dispatch the answers to the web clients is available.
     if ( rm.isAnswerAvailable() ) {
       string sAnswer;
       string sId;
+
       rm.pullAnswers(sId, sAnswer);
+
       cout << "ANSWER(" << sId << "): " << sAnswer << endl;
 
-      for ( unsigned int i=0; i < dispatchedMessages.size(); ++i ) {
-	WebSocketMessageWorkspace & m = dispatchedMessages.at(i);
-	if ( to_string(m.uintId) == sId ) {
-	  cout << "FOUND MESSAGE!" << endl;
-	  // Delete the message from the vector!!!!
-	  // Delete the message from the vector when the timestamp is very old!
+      /* Search the Compiler Request */
+      for ( unsigned int i=0; i < vWaitingCompileRequests.size(); ++i ) {
+	if ( vWaitingCompileRequests.at(i).token == sId ) {
+	  cout << "Found compiler request, send result" << endl;
+	  //sAnswer = jsonEscape(sAnswer);
+	  //string sMessage = "{ \"command\": \"compiler-result\", \"status\": true, \"result\": \"" + sAnswer + "\" }\n";      
 
-	  // Send to the particular client
-	  auto send_stream = make_shared<WebSocketServer::SendStream>();
-	  *send_stream << sAnswer;
-	  m.getConnection()->send(send_stream);	  
+	  // sAnswer must be json
+	  p.send2Token(sId, sAnswer);
+	  vWaitingCompileRequests.erase( vWaitingCompileRequests.begin() + i );
 	}
       }
-      
     }
 
     /*

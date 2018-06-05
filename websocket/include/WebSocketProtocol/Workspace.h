@@ -12,6 +12,7 @@
 #include <list>
 #include <array>
 #include <mutex>
+#include <queue>
 
 #include "server_ws.hpp"
 
@@ -90,6 +91,8 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
   std::vector<WorkspaceConnection*> m_vStudents;
   std::mutex m_vMutex;
   
+  std::queue<WorkspaceMessage> m_vCompileRequests;
+
  protected:
   std::list<WebSocketMessageWorkspace> m_vMessages;
   
@@ -108,6 +111,10 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
   virtual void onClose   (std::shared_ptr<WebSocketServer::Connection> connection, int status);
   virtual void onError   (std::shared_ptr<WebSocketServer::Connection> connection, const SimpleWeb::error_code &ec);
   virtual void onMessage (std::shared_ptr<WebSocketServer::Connection> connection, std::shared_ptr<WebSocketServer::Message> message);
+
+  virtual void addCompileRequest( WorkspaceMessage wm ) { this->m_vCompileRequests.push(wm); }
+  virtual bool isCompileRequestAvailable () { return this->m_vCompileRequests.size() > 0; }
+  virtual WorkspaceMessage getCompileRequest () { WorkspaceMessage wm = this->m_vCompileRequests.front(); this->m_vCompileRequests.pop(); return wm; }
 
   virtual std::string generateToken(size_t len);
 
@@ -135,6 +142,10 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
   bool moveToStudents ( WorkspaceConnection * pWsConnection );
 
   WorkspaceConnection* isExistingWorkspace ( std::string sWorkspaceId );  
+
+  bool send2Token(std::string sToken, std::string sMessage);
+  WorkspaceConnection* getConnectionFromToken( std::string sToken );
+
 
 };
 
