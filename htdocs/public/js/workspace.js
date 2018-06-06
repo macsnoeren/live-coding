@@ -216,8 +216,13 @@ function onWebsocketMessage ( evt ) {
 
     } else if ( data.command == "teacher-quit" ) {
       alert("Teacher has left the workspace.\n");
-      window.location.href = (teacher ? "teacher.html" : "index.html");
+      //window.location.href = (teacher ? "teacher.html" : "index.html");
 
+    } else if ( data.command == "teacher-joined" ) {
+      alert("Teacher has rejoined the workspace.\n");
+      //window.location.href = (teacher ? "teacher.html" : "index.html");
+
+	  
     } else if ( data.command == "compile-java" ) { // Information on the compile-java command!
       loadCompileResult(data.message);
 

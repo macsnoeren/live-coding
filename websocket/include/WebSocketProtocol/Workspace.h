@@ -23,6 +23,11 @@
 
 using WebSocketServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
 
+struct WorkspaceClientMessage {
+  std::shared_ptr<WebSocketServer::Connection> connection;
+  std::string message;
+};
+
 struct WorkspaceMessage {
   std::string command;
   std::string workspace;
@@ -92,6 +97,7 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
   std::mutex m_vMutex;
   
   std::queue<WorkspaceMessage> m_vCompileRequests;
+  std::queue<WorkspaceClientMessage> m_vClientMessages;
 
  protected:
   std::list<WebSocketMessageWorkspace> m_vMessages;
@@ -114,6 +120,8 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
 
   virtual void addCompileRequest( WorkspaceMessage wm ) { this->m_vCompileRequests.push(wm); }
   virtual bool isCompileRequestAvailable () { return this->m_vCompileRequests.size() > 0; }
+  
+  // BUG (): Below it is not checked wheter the queue is empty, segfault!
   virtual WorkspaceMessage getCompileRequest () { WorkspaceMessage wm = this->m_vCompileRequests.front(); this->m_vCompileRequests.pop(); return wm; }
 
   virtual std::string generateToken(size_t len);
@@ -150,8 +158,8 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
   void deleteStudentsFromWorkspace ( std::string sWorkspace );
   void send2WorkspaceTeacher ( std::string sWorkspace, std::string sMessage );
 
-
-
+  void addClientMessage  ( std::shared_ptr<WebSocketServer::Connection> connection, std::string sMessage );
+  void sendClientMessages ();
 };
 
 #endif

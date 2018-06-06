@@ -100,6 +100,9 @@ int main() {
       }
     }
 
+	//Not required anymore!
+	//p.sendClientMessages();
+	
     /*
     string sMessage = "Dit is een bericht aan de webclients\n";
     auto send_stream = make_shared<WebSocketServer::SendStream>();
