@@ -9,6 +9,7 @@ var token       = "12345";
 var username    = "unknown";
 var teacher     = false;
 var teacherName = "";
+var students    = [];
 
 /* Status */
 const NOTCONNECTED     = 0;
@@ -16,6 +17,11 @@ const CONNECTWEBSOCKET = 1;
 const CONNECTWORKSPACE = 2;
 const CONNECTED        = 3;
 var status             = NOTCONNECTED;
+
+/* Student Status */
+const NORESULT       = 0;
+const COMPILEERROR   = 1;
+const COMPILESUCCESS = 2;
 
 /* The web socket uri to connect with. */
 var websocketUri = "wss://vmacman.jmnl.nl/websocket/workspace";
@@ -208,6 +214,10 @@ function onWebsocketMessage ( evt ) {
 	celebrateShow("Je hebt de opdracht goed volbracht door het programma foutloos te compileren!");
       }
 
+    } else if ( data.command == "teacher-quit" ) {
+      alert("Teacher has left the workspace.\n");
+      window.location.href = (teacher ? "teacher.html" : "index.html");
+
     } else if ( data.command == "compile-java" ) { // Information on the compile-java command!
       loadCompileResult(data.message);
 
@@ -218,19 +228,48 @@ function onWebsocketMessage ( evt ) {
 }
 
 function addStudent ( data ) {
-
+  students.push( { name: data.name, id: data.id, status: NORESULT });
+  updateStudentDisplay();
 }
 
 function delStudent ( data ) {
+  newStudents = [];
 
+  for ( var i=0; i < students.length; ++i ) {
+    if ( data.id != students[i].id ) {
+      newStudents.push(students[i]);
+    }
+  }
+
+  students = newStudents;
+
+  updateStudentDisplay();
 }
 
 function updateStudent ( data ) {
+  for ( var i=0; i < students.length; ++i ) {
+    if ( data.id != students[i].id ) {
+      students[i].status = ( data.status ? COMPILESUCCESS : COMPILEERROR );
+    }
+  }  
 
+  updateStudentDisplay();
 }
 
 function updateStudentDisplay ( ) {
+  var output = "";
 
+  if ( students.length == 0 ) {
+    output = "Geen studenten hier..";
+  }
+
+  for ( var i=0; i < students.length; ++i ) {
+    var status = ( students[i].status == NORESULT ? "?" : ( students[i].status == COMPILESUCCESS ? "+" : "-" ) );
+    
+    output += "(" + status + ":" + students[i].name + ":" + students[i].id + ") ";
+  }    
+  
+  $('#studentsoverview').html(output);
 }
 
 function onWebsocketError ( evt ) {

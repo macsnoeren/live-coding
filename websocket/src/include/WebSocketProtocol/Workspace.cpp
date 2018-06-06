@@ -95,23 +95,30 @@ void WebSocketProtocolWorkspace::onOpen (shared_ptr<WebSocketServer::Connection>
   this->printMessages();
 }
 
-void WebSocketProtocolWorkspace::onClose   (shared_ptr<WebSocketServer::Connection> connection, int status) {
+void WebSocketProtocolWorkspace::onClose (shared_ptr<WebSocketServer::Connection> connection, int status) {
   cout << "Server: Closed connection " << connection.get() << " with status code " << status << endl;
 
   WorkspaceConnection* pWsConnection = this->getWorkspaceConnection(connection);
 
-  // HIER BEN IK
-
   if ( pWsConnection != NULL ) {
     if ( pWsConnection->getTeacher() ) { // Send message to all students and remove them all including the teacher
-      //string sMessage = ??
-      //this->sendWorkspace(pWsConnection->getWorkspaceId(), "teacher-quit", sMessage);
-      //this->deleteStudentsFromWorkspace(pWsConnection->getWorkspaceId());
+      cout << "Teacher has been closing the connection!\n";
+      string sMessage = "{ \"command\": \"teacher-quit\", \"status\": true, \"message\": \"Teacher has left the workspace!\" }\n";
+      this->send2WorkspaceStudents(pWsConnection->getWorkspaceId(), sMessage);
+      //this->deleteStudentsFromWorkspace(pWsConnection->getWorkspaceId()); // Cannot do this, it must be at the client!
 
     } else { // Send the teacher that this student has been removed
-      //string sMessage = ??
-      //this->sendTeacher(pWsConnection->getWorkspaceId(), "student-del", sMessage);
+      cout << "Student has been closing the connection!\n";
+      string sMessage = "{ \"command\": \"student-del\", \"status\": true, \"id\": \"" + pWsConnection->getId() + "\" }\n";
+      WorkspaceConnection* pWsTeacher = this->isExistingWorkspace( pWsConnection->getWorkspaceId() ); // SEGFAULT
+      if ( pWsTeacher != NULL ) {
+	cout << "Existing workspace, so sending the teahcer!" << endl;
+	this->send2WorkspaceTeacher(pWsConnection->getWorkspaceId(), sMessage);
+      }
     }
+
+  } else {
+    cout << "CHECK: pWsConnection == NULL" << endl;
   }
 
   this->deleteConnection(connection);
@@ -120,7 +127,7 @@ void WebSocketProtocolWorkspace::onClose   (shared_ptr<WebSocketServer::Connecti
 void WebSocketProtocolWorkspace::onError   (shared_ptr<WebSocketServer::Connection> connection, const SimpleWeb::error_code &ec) {
   cout << "Server: Error in connection " << connection.get() << ". "
        << "Error: " << ec << ", error message: " << ec.message() << endl;
-  //this->deleteConnection(connection);
+  this->deleteConnection(connection);
 }
 
 void WebSocketProtocolWorkspace::send (shared_ptr<WebSocketServer::Connection> connection, string & message ) {
@@ -186,6 +193,15 @@ bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, 
   string sMessage = "";
 
   if ( wsMessage.command == "teacher-start" ) {
+    WorkspaceConnection* pWsTeacher = this->isExistingWorkspace( wsMessage.workspace );
+    if ( pWsTeacher != NULL ) {
+      cout << "Workspace already exists!!" << endl;
+      sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": false, \"message\": \"Workspace ID already exists.\" }\n";
+      this->send(pWsConnection->getConnection(), sMessage);
+
+      return true;
+    }
+
     pWsConnection->setUsername(wsMessage.username);
     pWsConnection->setTeacher();
     pWsConnection->setToken( this->generateToken(50) );
@@ -289,7 +305,7 @@ WorkspaceConnection* WebSocketProtocolWorkspace::getConnectionFromToken( string 
   return NULL;
 }
 
-bool WebSocketProtocolWorkspace::send2Token(std::string sToken, std::string sMessage) {
+bool WebSocketProtocolWorkspace::send2Token(string sToken, string sMessage) {
   cout << "Send message to token " << sToken << endl;
 
   WorkspaceConnection* pWsConnection = this->getConnectionFromToken(sToken);
@@ -304,13 +320,15 @@ bool WebSocketProtocolWorkspace::send2Token(std::string sToken, std::string sMes
 }
 
 
-WorkspaceConnection*  WebSocketProtocolWorkspace::isExistingWorkspace ( std::string sWorkspaceId ) {
+WorkspaceConnection*  WebSocketProtocolWorkspace::isExistingWorkspace ( string sWorkspaceId ) {
   WorkspaceConnection * pWsTeacher = NULL;
 
   this->m_vMutex.lock();
 
   for ( auto it = this->m_vTeachers.begin(); it != this->m_vTeachers.end(); ++it ) {
-    if ( (*it)->getWorkspaceId() == sWorkspaceId ) {
+    cout << "Get workspace ID" << endl;
+    cout << (*it)->getConnection() << " <----" << endl;
+    if ( (*it)->getWorkspaceId() == sWorkspaceId ) { // SEGFAULT: getWorkspaceId();
       pWsTeacher = (*it);
     }
   }  
@@ -480,6 +498,50 @@ bool WebSocketProtocolWorkspace::processMessage ( string & message, WorkspaceMes
   cout << "--------------------------------" << endl;
   
   return true;
+}
+
+void WebSocketProtocolWorkspace::send2WorkspaceStudents ( std::string sWorkspace, std::string sMessage ) {
+  this->m_vMutex.lock();
+
+  for ( unsigned int i=0; i < this->m_vStudents.size(); ++i ) {
+    if ( this->m_vStudents.at(i)->getWorkspaceId() == sWorkspace ) {
+      this->send( this->m_vStudents.at(i)->getConnection(), sMessage );
+    }
+  }
+
+  this->m_vMutex.unlock();
+}
+
+// Do not use this function!
+void WebSocketProtocolWorkspace::deleteStudentsFromWorkspace ( std::string sWorkspace ) {
+  this->m_vMutex.lock();
+
+  for (auto it = this->m_vStudents.begin(); it != this->m_vStudents.end(); ) {
+    if ( (*it)->getWorkspaceId() == sWorkspace ) {
+      it = this->m_vStudents.erase(it);
+      delete *it;
+      
+    } else {
+      ++it;
+    }
+  }
+
+  this->m_vMutex.unlock();
+}
+
+void WebSocketProtocolWorkspace::send2WorkspaceTeacher ( std::string sWorkspace, std::string sMessage ) {
+  cout << "send 2 teacher" << endl;
+  this->m_vMutex.lock();
+
+  for ( unsigned int i=0; i < this->m_vTeachers.size(); ++i ) {
+    cout << "Teacher" << endl;
+    if ( this->m_vTeachers.at(i)->getWorkspaceId() == sWorkspace ) {
+      cout << "found a teacher" << endl;
+      this->send( this->m_vTeachers.at(i)->getConnection(), sMessage );
+    }
+  }
+
+  this->m_vMutex.unlock();
 }
 
 // For testing only!

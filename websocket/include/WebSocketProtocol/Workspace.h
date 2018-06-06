@@ -68,7 +68,7 @@ class WorkspaceConnection {
   void setToken (std::string token) { this->m_sToken = token; }
 
   void setWorkspaceId ( std::string sWorkspaceId ) { this->m_sWorkspaceId = sWorkspaceId; }
-  std::string getWorkspaceId () { return m_sWorkspaceId; }
+  std::string getWorkspaceId () { return this->m_sWorkspaceId; }
  
   std::string getId() { return std::to_string(this->m_iId); }  
 };
@@ -145,6 +145,11 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
 
   bool send2Token(std::string sToken, std::string sMessage);
   WorkspaceConnection* getConnectionFromToken( std::string sToken );
+
+  void send2WorkspaceStudents ( std::string sWorkspace, std::string sMessage );
+  void deleteStudentsFromWorkspace ( std::string sWorkspace );
+  void send2WorkspaceTeacher ( std::string sWorkspace, std::string sMessage );
+
 
 
 };
