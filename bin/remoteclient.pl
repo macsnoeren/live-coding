@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+#annotations
+#editor.getSession().setAnnotations([{ row: 3, column: 10, text: "Error Message", // Or the Json reply from the parser type: "warning" // also warning and information }]);
+
 use strict;
 use warnings;
 

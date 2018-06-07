@@ -48,6 +48,8 @@ class RemoteServer {
   bool m_bRunning;
   bool m_bClientsConnected;
   
+  int m_iTotalClientsConnected;
+  
   struct sockaddr_in m_sServerAddr;
 
   std::thread m_threadServerMain;
@@ -88,6 +90,10 @@ class RemoteServer {
   bool isAnswerAvailable () { return this->m_qAnswers.size() > 0; }
 
   bool checkClientsConnected () { return this->m_bClientsConnected; }
+  
+  void _clientThreadStarted () { this->m_iTotalClientsConnected++; std::cout << "Total clients connected: " << this->m_iTotalClientsConnected << std::endl; }
+  void _clientThreadStopped () { this->m_iTotalClientsConnected--; std::cout << "Total clients connected: " << this->m_iTotalClientsConnected << std::endl; }
+  int getTotalConnectedClients() { return this->m_iTotalClientsConnected; }
 
 };
 

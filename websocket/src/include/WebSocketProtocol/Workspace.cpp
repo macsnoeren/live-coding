@@ -373,6 +373,7 @@ WorkspaceConnection*  WebSocketProtocolWorkspace::isExistingWorkspace ( string s
 
 
 // BUG: erase returns next iterator it and that one is deleted!!
+// std::remove_if 
 bool WebSocketProtocolWorkspace::deleteConnection ( std::shared_ptr<WebSocketServer::Connection> connection ) {
 
   WorkspaceConnection* pWsConnection = NULL;
@@ -388,7 +389,7 @@ bool WebSocketProtocolWorkspace::deleteConnection ( std::shared_ptr<WebSocketSer
       ++it;
     }
   }
-
+  
   for (auto it = this->m_vTeachers.begin(); it != this->m_vTeachers.end(); ) {
     pWsConnection = (*it);
     if ( pWsConnection->getConnection() == connection ) {

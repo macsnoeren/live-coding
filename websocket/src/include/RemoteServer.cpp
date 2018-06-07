@@ -4,9 +4,11 @@ using namespace std;
 
 // TODO: check when connection is dead! repush the message on the stack!
 void _threadClientMain ( RemoteServer* rs, struct sockaddr_in sClientAddr, int iClientFd ) {
-  cout << "Thread client started!\n";
+  cout << "_threadClientMain: Thread client started!\n";
 
-  printf("RemoteServer: got connection from %s port %d\n",
+  rs->_clientThreadStarted();
+  
+  printf("_threadClientMain: RemoteServer: got connection from %s port %d\n",
 	 inet_ntoa(sClientAddr.sin_addr), ntohs(sClientAddr.sin_port));
 
   bool bActiveConnection = true;
@@ -19,10 +21,12 @@ void _threadClientMain ( RemoteServer* rs, struct sockaddr_in sClientAddr, int i
     //       For different kind of compilers. And also console access ;) for access ;).
 
     if ( rs->pullRequest(sId, sRequest) ) {
-      cout << "RemoteServer: Got request and sending it to the remote client that is connected!\n";
+      cout << "_threadClientMain: RemoteServer: Got request and sending it to the remote client that is connected!\n";
 
-      send(iClientFd, sRequest.c_str(), sRequest.size(), 0);
+      int n = send(iClientFd, sRequest.c_str(), sRequest.size(), 0);
 
+  	  cout << "_threadClientMain: SEND n = '" << n << "'" << endl;
+	  
       const int bufferLength = 8096;
       char buffer[bufferLength];
 
@@ -31,23 +35,27 @@ void _threadClientMain ( RemoteServer* rs, struct sockaddr_in sClientAddr, int i
       // TODO: Reading large data when buffer is to small needs to be done
       // TODO: Request should have an ID so it can be identified to which workspace it should
       //       be sent.
-      int n = read(iClientFd, buffer, bufferLength-1);
+      n = read(iClientFd, buffer, bufferLength-1);
 
-      if ( n < 0 ) {
-	rs->error("ERROR reading from socket");
-	bActiveConnection = false;
+	  cout << "_threadClientMain: READ n = '" << n << "'" << endl;
+	  
+      if ( n <= 0 ) {
+	    rs->error("_threadClientMain: ERROR reading from socket");
+	    bActiveConnection = false;
+		string sMessage = "{ \"command\": \"compiler-result\", \"status\": false, \"result\": \"Internal compiler error occurred, please try again\"}";
+		rs->pushAnswers(sId, sMessage);
 
       } else {
-	cout << "RemoteServer: Got answer from remote client on request!\n";
-	printf("Answer:\n %s\n---------------\n", buffer);
+	    cout << "_threadClientMain: RemoteServer: Got answer from remote client on request!\n";
+	    printf("_threadClientMain: Answer:\n %s\n---------------\n", buffer);
 
-	string sAnswer = buffer;
+	    string sAnswer = buffer;
 
-	rs->pushAnswers(sId, sAnswer);
+	    rs->pushAnswers(sId, sAnswer);
 
-	// TODO: Check the result and maybe push the request again on the stack
-	//       Return it to the RemoteServer
-	//       Now just sent it back to all workspaces for example!
+	    // TODO: Check the result and maybe push the request again on the stack
+	    //       Return it to the RemoteServer
+	    //       Now just sent it back to all workspaces for example!
       }
 
     }
@@ -57,10 +65,12 @@ void _threadClientMain ( RemoteServer* rs, struct sockaddr_in sClientAddr, int i
 
   close(iClientFd);
 
+  rs->_clientThreadStopped();
+  
   cout << "Thread client stopped!\n";
 }
 
-// TODO: check if threads have been ended and clean them up.
+// TODO: check if threads have been ended and clean them up. No this stack can grow big!
 void _threadServerMain ( RemoteServer* rs, bool * bClientsConnected ) {
   cout << "RemoteServer: Started and accepting clients.\n";
 
@@ -73,13 +83,29 @@ void _threadServerMain ( RemoteServer* rs, bool * bClientsConnected ) {
     int iClientFd = accept(rs->getSockFd(), (struct sockaddr *) &sClientAddr, &slClientLen);
 
     if ( iClientFd < 0) {
-      rs->error("RemoteServer: Error occured during accepting the client.");
+      rs->error("RemoteServer: Error occurred during accepting the client.");
 
     } else {
       threadClients.push_back( thread( _threadClientMain, rs, sClientAddr, iClientFd ) );
     }
 
-    *bClientsConnected = ( threadClients.size() > 0 );
+	// Check the threads if they have been ended, werkt nog niet
+/*
+	cout << "Check if the threads are ended!" << endl;
+	for (auto it = threadClients.begin(); it != threadClients.end(); ) {
+      if ( !(*it).joinable() ) {
+		  cout << "_threadServerMain: Erasing thread!" << endl;
+		  (*it).join();
+		  it = threadClients.erase(it);
+
+      } else {
+        ++it;
+      }
+    }
+*/
+	
+    //*bClientsConnected = ( threadClients.size() > 0 );
+    *bClientsConnected = ( rs->getTotalConnectedClients() > 0 );
 
     usleep(100);
   }
@@ -96,6 +122,7 @@ void _threadServerMain ( RemoteServer* rs, bool * bClientsConnected ) {
 RemoteServer::RemoteServer (int iPort): m_iPort(iPort) {
   this->m_bRunning = false;
   this->m_bClientsConnected = false;
+  this->m_iTotalClientsConnected = 0;
 }
 
 RemoteServer::~RemoteServer () {
@@ -157,7 +184,8 @@ bool RemoteServer::stop () {
 }
 
 bool RemoteServer::pushRequest (string & sId, string & sRequest) {
-  if ( !this->m_bClientsConnected ) {
+//  if ( !this->m_bClientsConnected ) { // FIX THIS IN FUNCTION
+  if ( this->getTotalConnectedClients() < 1 ) { // FIX THIS IN FUNCTION
     cout << "RemoteServer: No remote clients are available to serve request, so denying your request ... sorry!";
     return false;    
   }
