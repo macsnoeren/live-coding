@@ -73,7 +73,16 @@ function logout () {
 } 
 
 function setWorkspaceInfo () {
-  $('#workspaceinfo').html("Workspace (" + (teacher ? "Docent" : "Student") + "): " + workspaceId + ", " + username + " (" + token + ")" + (!teacher ? ", Teacher: " + teacherName : ""));
+  //$('#workspaceinfo').html("Workspace (" + (teacher ? "Docent" : "Student") + "): " + workspaceId + ", " + username + " (" + token + ")" + (!teacher ? ", Teacher: " + teacherName : ""));
+  
+  bgcolor = "background-color: #ffad99;";
+  if ( status == CONNECTED ) {
+	bgcolor = "background-color: #e0ffb3;";
+  }
+    
+  $('#workspaceinfo').html("<div class=\"py-2 px-2\" style=\"" + bgcolor + "\"\>Workspace:  " + workspaceId + " als " +
+                           (teacher ? "docent" : "student") + " met naam " + username +
+                           (teacher ? " " : "<br/>Docent: " + teacherName) + "</div>");
 }
 
 /* When the body is loaded, this function is called. */
@@ -179,6 +188,7 @@ function onWebsocketMessage ( evt ) {
     if ( data.command == "teacher-start" || data.command == "student-start" ) {
       if ( status == CONNECTWORKSPACE ) {
 	if ( data.status ) { // Success!
+	  status = CONNECTED;
 	  teacher = ( data.command == "teacher-start" );
 	  teacherName = ( !teacher ? data.teacher : "" );
 	  token = data.token;
