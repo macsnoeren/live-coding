@@ -123,7 +123,7 @@ void WebSocketProtocolWorkspace::onClose (shared_ptr<WebSocketServer::Connection
       if ( pWsTeacher != NULL ) {
 		cout << "onClose: Existing workspace, so notify the teacher!" << endl;
 		this->send2WorkspaceTeacher(sWorkspace, sMessage);
-		
+				
       } else {
 		cout << "onClose: Workspace does not exist, teacher has left the building already!" << endl;		  
 	  }
@@ -176,7 +176,7 @@ void WebSocketProtocolWorkspace::onMessage (shared_ptr<WebSocketServer::Connecti
   if ( this->processMessage(sMessage, wsMessage) ) {
     if ( !this->executeMessage(wsMessage, pWsConnection) ) {
       cout << "onMessage: Could not execute the request!" << endl;
-      string sMessage = "{ \"command\": \"" + wsMessage.command + "\"status\": false, \"message\": \"Could not execute your request!\" }\n";
+      string sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": false, \"message\": \"Could not execute your request!\" }\n";
       this->send(connection, sMessage);
     }
 
@@ -230,6 +230,7 @@ bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, 
 	  cout << "onMessage: Notify the students that the teacher has come in again!\n";
       string sMessage = "{ \"command\": \"teacher-joined\", \"status\": true, \"message\": \"Teacher has left the workspace!\" }\n";
       this->send2WorkspaceStudents(wsMessage.workspace, sMessage);
+	  this->sendStudents2Teacher(pWsConnection, wsMessage.workspace);
 	  
 	} else {
       sMessage = "{ \"status\": false, \"message\": \"Internal error occurred and could not register the user.\" }\n";
@@ -281,10 +282,23 @@ bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, 
 
   } else if ( wsMessage.command == "compile-java" || wsMessage.command == "compile-java-8" ) {    
     this->addCompileRequest(wsMessage);
+	sMessage = "{ \"command\": \"student-compile-start\", \"workspace\": \"" + wsMessage.workspace + "\", \"name\": \"" + pWsConnection->getUsername() + "\", \"id\": \"" + pWsConnection->getId() + "\" }\n";
+    this->send2WorkspaceTeacher(pWsConnection->getWorkspaceId(), sMessage);    
+
     sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": false, \"message\": \"Your request has been received...\" }\n";      
     this->send(pWsConnection->getConnection(), sMessage);
     return true;
 
+  } else if ( wsMessage.command == "compile-success" ) { 
+	sMessage = "{ \"command\": \"student-compile-success\", \"workspace\": \"" + wsMessage.workspace + "\", \"name\": \"" + pWsConnection->getUsername() + "\", \"id\": \"" + pWsConnection->getId() + "\" }\n";
+    this->send2WorkspaceTeacher(pWsConnection->getWorkspaceId(), sMessage);    
+	return true;
+
+  } else if ( wsMessage.command == "compile-error" ) { 
+	sMessage = "{ \"command\": \"student-compile-error\", \"workspace\": \"" + wsMessage.workspace + "\", \"name\": \"" + pWsConnection->getUsername() + "\", \"id\": \"" + pWsConnection->getId() + "\" }\n";
+    this->send2WorkspaceTeacher(pWsConnection->getWorkspaceId(), sMessage);    
+	return true;
+	
   } else if ( wsMessage.command == "teacher-push" ) { // Teacher wants to push code
     //sMessage = ??
     //this->sendWorkspace(pWsConnection->getWorkspaceId(), "teacher-push", sMessage);
@@ -550,6 +564,20 @@ void WebSocketProtocolWorkspace::send2WorkspaceStudents ( std::string sWorkspace
       this->send( this->m_vStudents.at(i)->getConnection(), sMessage );
       //this->addClientMessage( this->m_vStudents.at(i)->getConnection(), sMessage );
     }
+  }
+
+  this->m_vMutex.unlock();
+}
+
+void WebSocketProtocolWorkspace::sendStudents2Teacher (  WorkspaceConnection * pWsTeacher, string sWorkspace ) {
+  this->m_vMutex.lock();
+
+  for ( unsigned int i=0; i < this->m_vStudents.size(); ++i ) {
+    if ( this->m_vStudents.at(i)->getWorkspaceId() == sWorkspace ) {
+	  WorkspaceConnection* pWsConnection = this->m_vStudents.at(i);
+	  string sMessage = "{ \"command\": \"student-new\", \"workspace\": \"" + sWorkspace + "\", \"name\": \"" + pWsConnection->getUsername() + "\", \"id\": \"" + pWsConnection->getId() + "\" }\n";
+	  this->send(pWsTeacher->getConnection(), sMessage);
+	}
   }
 
   this->m_vMutex.unlock();

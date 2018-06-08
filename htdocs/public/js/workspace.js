@@ -21,7 +21,8 @@ var status             = NOTCONNECTED;
 /* Student Status */
 const NORESULT       = 0;
 const COMPILEERROR   = 1;
-const COMPILESUCCESS = 2;
+const COMPILING      = 2;
+const COMPILESUCCESS = 3;
 
 /* The web socket uri to connect with. */
 var websocketUri = "wss://vmacman.jmnl.nl/websocket/workspace";
@@ -204,15 +205,15 @@ function onWebsocketMessage ( evt ) {
       delStudent(data);
       //alert("Delete Student: " + data.name);
 
-    } else if ( data.command == "student-status" ) { // Update of a student or students
-      updateStudent(data);
-      //alert("Status Student: " + data.name);
-
     } else if ( data.command == "compiler-result" ) {
       loadCompileResult(data.result);
       if ( data.status ) {
-	celebrateShow("Je hebt de opdracht goed volbracht door het programma foutloos te compileren!");
-      }
+		send2Server("compile-success", editor.getValue());
+	    celebrateShow("Je hebt de opdracht goed volbracht door het programma foutloos te compileren!");
+		
+      } else {
+  		send2Server("compile-error", editor.getValue());
+	  }
 
     } else if ( data.command == "teacher-quit" ) {
       alert("Teacher has left the workspace.\n");
@@ -222,9 +223,17 @@ function onWebsocketMessage ( evt ) {
       alert("Teacher has rejoined the workspace.\n");
       //window.location.href = (teacher ? "teacher.html" : "index.html");
 
-	  
     } else if ( data.command == "compile-java" ) { // Information on the compile-java command!
       loadCompileResult(data.message);
+
+    } else if ( data.command == "student-compile-success" ) {		
+      updateStudent(data, COMPILESUCCESS);
+
+    } else if ( data.command == "student-compile-error" ) { 
+      updateStudent(data, COMPILEERROR);
+	
+    } else if ( data.command == "student-compile-start" ) {
+      updateStudent(data, COMPILING);
 
     } else {
       alert("Got unknown command: " + data.command);
@@ -251,10 +260,10 @@ function delStudent ( data ) {
   updateStudentDisplay();
 }
 
-function updateStudent ( data ) {
+function updateStudent ( data, status ) {
   for ( var i=0; i < students.length; ++i ) {
-    if ( data.id != students[i].id ) {
-      students[i].status = ( data.status ? COMPILESUCCESS : COMPILEERROR );
+    if ( data.id == students[i].id ) {
+      students[i].status = status; //( data.status ? COMPILESUCCESS : COMPILEERROR );
     }
   }  
 
@@ -269,12 +278,32 @@ function updateStudentDisplay ( ) {
   }
 
   for ( var i=0; i < students.length; ++i ) {
-    var status = ( students[i].status == NORESULT ? "?" : ( students[i].status == COMPILESUCCESS ? "+" : "-" ) );
-    
+	  
+/*	  
+    var status = ( students[i].status == NORESULT ? "?" : ( students[i].status == COMPILESUCCESS ? "+" : "-" ) );  
     output += "(" + status + ":" + students[i].name + ":" + students[i].id + ") ";
+*/
+
+    output += "<div class=\"float-non\"></div>";
+    output += _updateStudent(students[i]);
   }    
   
   $('#studentsoverview').html(output);
+}
+
+function _updateStudent ( student ) {
+	var bgcolor = "background-color: #AAA;";
+	if ( student.status == COMPILEERROR ) {
+	  bgcolor = "background-color: #F00;";
+
+	} else if ( student.status == COMPILING ) {
+	  bgcolor = "background-color: #00F;";
+
+	} else if ( student.status == COMPILESUCCESS ) {
+	  bgcolor = "background-color: #0F0;";
+	}	
+	
+	return "<div style=\"" + bgcolor + "\" class=\"border border-primary student rounded-circle float-left text-center\"><br>" + student.name + "</div>";
 }
 
 function onWebsocketError ( evt ) {

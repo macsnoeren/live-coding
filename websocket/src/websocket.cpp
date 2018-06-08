@@ -54,7 +54,9 @@ int main() {
 
   // Create the RemoteServer class to start the remote server service
   RemoteServer rm(20000);
-  rm.start();
+  if ( !rm.start() ) {
+    return 0;
+  }
 
   // Waiting compiler requests
   std::vector<WorkspaceMessage> vWaitingCompileRequests;
@@ -62,22 +64,26 @@ int main() {
   while (1) {
     // Hier kan alles aan elkaar geknoopt worden. De berichten die binnenkomen verwerken en andere dingen weer aansturen.
 
-
+	
     // Dispatch the messages to the remote servers if available
-    if ( p.isCompileRequestAvailable() ) {
+	int counter = 0;
+    while ( p.isCompileRequestAvailable() && counter++ < 10 ) {
       WorkspaceMessage wm = p.getCompileRequest();
       
       if ( rm.pushRequest(wm.token, wm.data) ) {
-	vWaitingCompileRequests.push_back(wm);
+	    vWaitingCompileRequests.push_back(wm);
 	
       } else {
-	string sMessage = "{ \"command\": \"" + wm.command + "\", \"status\": \"false\", \"message\": \"ERROR: No compilers available.\" }\n";      
-	p.send2Token(wm.token, sMessage);
+	    string sMessage = "{ \"command\": \"" + wm.command + "\", \"status\": \"false\", \"message\": \"ERROR: No compilers available.\" }\n";      
+	    p.send2Token(wm.token, sMessage);
       }
+	  
+	  usleep(100);
     }
 
     // Dispatch the answers to the web clients is available.
-    if ( rm.isAnswerAvailable() ) {
+	counter = 0;
+    while ( rm.isAnswerAvailable() && counter++ < 10 ) {
       string sAnswer;
       string sId;
 
@@ -87,17 +93,18 @@ int main() {
 
       /* Search the Compiler Request */
       for ( unsigned int i=0; i < vWaitingCompileRequests.size(); ++i ) {
-	if ( vWaitingCompileRequests.at(i).token == sId ) {
-	  cout << "Found compiler request, send result" << endl;
-	  //sAnswer = jsonEscape(sAnswer);
-	  //string sMessage = "{ \"command\": \"compiler-result\", \"status\": true, \"result\": \"" + sAnswer + "\" }\n";      
+	    if ( vWaitingCompileRequests.at(i).token == sId ) {
+	      cout << "Found compiler request, send result" << endl;
+	      //sAnswer = jsonEscape(sAnswer);
+	      //string sMessage = "{ \"command\": \"compiler-result\", \"status\": true, \"result\": \"" + sAnswer + "\" }\n";      
 
-	  // sAnswer must be json
-	  p.send2Token(sId, sAnswer);
-	  vWaitingCompileRequests.erase( vWaitingCompileRequests.begin() + i );
-	  // send also this message to teacher as student-update
-	}
+	      // sAnswer must be json
+	      p.send2Token(sId, sAnswer);
+	      vWaitingCompileRequests.erase( vWaitingCompileRequests.begin() + i );
+	      // send also this message to teacher as student-update
+	    }
       }
+	  usleep(100);
     }
 
 	//Not required anymore!

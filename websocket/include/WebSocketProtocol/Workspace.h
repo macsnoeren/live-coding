@@ -157,7 +157,8 @@ class WebSocketProtocolWorkspace: public WebSocketProtocol {
   void send2WorkspaceStudents ( std::string sWorkspace, std::string sMessage );
   void deleteStudentsFromWorkspace ( std::string sWorkspace );
   void send2WorkspaceTeacher ( std::string sWorkspace, std::string sMessage );
-
+  void sendStudents2Teacher ( WorkspaceConnection * pWsTeacher, std::string sWorkspace );
+  
   void addClientMessage  ( std::shared_ptr<WebSocketServer::Connection> connection, std::string sMessage );
   void sendClientMessages ();
 };
