@@ -61,8 +61,6 @@ int main() {
   // Waiting compiler requests
   std::vector<WorkspaceMessage> vWaitingCompileRequests;
 
-  int counterm = 0;
-
   while (1) {
     // Hier kan alles aan elkaar geknoopt worden. De berichten die binnenkomen verwerken en andere dingen weer aansturen.
 
@@ -71,7 +69,10 @@ int main() {
 	int counter = 0;
     while ( p.isCompileRequestAvailable() && counter++ < 10 ) {
       WorkspaceMessage wm = p.getCompileRequest();
-      
+      	  
+	  wm.data = wm.command + ":" + wm.data;
+		  
+      //if ( rm.pushRequest(wm.token, wm.data) ) {
       if ( rm.pushRequest(wm.token, wm.data) ) {
 	    vWaitingCompileRequests.push_back(wm);
 	
@@ -106,12 +107,6 @@ int main() {
 	      // send also this message to teacher as student-update
 	    }
       }
-
-      if ( counterm++ % 10 == 0 ) {
-        counterm = 0;
-        cout << "IK ben er nog!" << endl;
-      }
-
 	  usleep(100);
     }
 

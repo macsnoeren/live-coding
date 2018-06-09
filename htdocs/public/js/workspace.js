@@ -221,7 +221,7 @@ function onWebsocketMessage ( evt ) {
       //alert("Delete Student: " + data.name);
 
     } else if ( data.command == "compiler-result" ) {
-      loadCompileResult(data.result);
+      loadCompileResult(data.result + (data.execution ? data.execution : ""));
       if ( data.status ) {
 		send2Server("compile-success", editor.getValue());
 	    celebrateShow("Je hebt de opdracht goed volbracht door het programma foutloos te compileren!");
@@ -242,7 +242,7 @@ function onWebsocketMessage ( evt ) {
       teacherJoined = true;
       setWorkspaceInfo();
 	  
-    } else if ( data.command == "compile-java" ) { // Information on the compile-java command!
+    } else if ( data.command == "compile-java" || data.command == "execute-java" ) { // Information on the compile-java command!
       loadCompileResult(data.message);
 	  updateStudent(NOCOMPILATION);
 
@@ -376,6 +376,12 @@ function websocketSend ( message ) {
 function compileCode (event) {
   event.preventDefault();
   send2Server("compile-java", editor.getValue());
+  //window.location.href = "#output"; // Go to anchor
+}
+
+function executeCode (event) {
+  event.preventDefault();
+  send2Server("execute-java", editor.getValue());
   //window.location.href = "#output"; // Go to anchor
 }
 

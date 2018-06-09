@@ -282,7 +282,9 @@ bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, 
 
     return true;
 
-  } else if ( wsMessage.command == "compile-java" || wsMessage.command == "compile-java-8" ) {    
+  } else if ( wsMessage.command == "compile-java" || wsMessage.command == "compile-java-8" ||  
+              wsMessage.command == "execute-java" || wsMessage.command == "execute-java-8" ) {  
+    cout << "ASDASDASDASDASD" << endl;	
     this->addCompileRequest(wsMessage);
 	sMessage = "{ \"command\": \"student-compile-start\", \"workspace\": \"" + wsMessage.workspace + "\", \"name\": \"" + pWsConnection->getUsername() + "\", \"id\": \"" + pWsConnection->getId() + "\" }\n";
     this->send2WorkspaceTeacher(pWsConnection->getWorkspaceId(), sMessage);    
