@@ -4,12 +4,15 @@
  */
 
 /* Workspace environment */
-var workspaceId = ""; 
-var token       = "12345";
-var username    = "unknown";
-var teacher     = false;
-var teacherName = "";
-var students    = [];
+var workspaceId   = ""; 
+var token         = "12345";
+var username      = "unknown";
+var userid        = "unknown";
+var teacher       = false;
+var teacherName   = "";
+var teacherJoined = true;
+var students      = [];
+var ranking       = []; // Ranking of the student with success compilation
 
 /* Status */
 const NOTCONNECTED     = 0;
@@ -23,6 +26,7 @@ const NORESULT       = 0;
 const COMPILEERROR   = 1;
 const COMPILING      = 2;
 const COMPILESUCCESS = 3;
+const NOCOMPILATION  = 4;
 
 /* The web socket uri to connect with. */
 var websocketUri = "wss://vmacman.jmnl.nl/websocket/workspace";
@@ -55,7 +59,7 @@ function onWindowLoaded () {
   }
 
   // Check the username
-  username    = getUrlVar("username");
+  username = getUrlVar("username");
   var reUsername = new RegExp("^[a-zA-Z0-9 -_]{1,40}$");
   if ( !reUsername.test(username) ) {
     alert("ERROR: Username is niet geldig!");
@@ -76,13 +80,13 @@ function setWorkspaceInfo () {
   //$('#workspaceinfo').html("Workspace (" + (teacher ? "Docent" : "Student") + "): " + workspaceId + ", " + username + " (" + token + ")" + (!teacher ? ", Teacher: " + teacherName : ""));
   
   bgcolor = "background-color: #ffad99;";
-  if ( status == CONNECTED ) {
+  if ( status == CONNECTED && teacherJoined ) {
 	bgcolor = "background-color: #e0ffb3;";
   }
     
   $('#workspaceinfo').html("<div class=\"py-2 px-2\" style=\"" + bgcolor + "\"\>Workspace:  " + workspaceId + " als " +
-                           (teacher ? "docent" : "student") + " met naam " + username +
-                           (teacher ? " " : "<br/>Docent: " + teacherName) + "</div>");
+                           (teacher ? "docent" : "student") + " met naam " + username + " (" + userid + ")" +
+                           (teacher ? " " : "<br/>Docent: " + teacherName) + (teacherJoined ? "" : " (niet meer aanwezig)") + "</div>");
 }
 
 /* When the body is loaded, this function is called. */
@@ -144,7 +148,7 @@ function closeWebsocket () {
     
   } else {
     console.log("Cannot close a socket that is not connected or is in a connecting state!");
-    alert("Connection Error\nPlease try again later.");
+    //alert("Connection Error\nPlease try again later.");
     window.location.href = (teacher ? "teacher.html" : "index.html");
   }
 }
@@ -192,6 +196,7 @@ function onWebsocketMessage ( evt ) {
 	  teacher = ( data.command == "teacher-start" );
 	  teacherName = ( !teacher ? data.teacher : "" );
 	  token = data.token;
+	  userid = data.id;
 	  statusWebsocket("Connected");
 	  setWorkspaceInfo();
 	  endLoadingScreen(); // workspace is ready!
@@ -226,29 +231,61 @@ function onWebsocketMessage ( evt ) {
 	  }
 
     } else if ( data.command == "teacher-quit" ) {
-      alert("Teacher has left the workspace.\n");
+      //alert("Teacher has left the workspace.\n");
       //window.location.href = (teacher ? "teacher.html" : "index.html");
+	  teacherJoined = false;
+	  setWorkspaceInfo();
 
     } else if ( data.command == "teacher-joined" ) {
-      alert("Teacher has rejoined the workspace.\n");
+      //alert("Teacher has rejoined the workspace.\n");
       //window.location.href = (teacher ? "teacher.html" : "index.html");
-
+      teacherJoined = true;
+      setWorkspaceInfo();
+	  
     } else if ( data.command == "compile-java" ) { // Information on the compile-java command!
       loadCompileResult(data.message);
+	  updateStudent(NOCOMPILATION);
 
-    } else if ( data.command == "student-compile-success" ) {		
-      updateStudent(data, COMPILESUCCESS);
+    } else if ( data.command == "student-compile-success" ) {
+      if ( data.id != userid ) {
+	    addStudent2Ranking(data.id, data.name);
+        updateStudent(data, COMPILESUCCESS);
+	  }
 
     } else if ( data.command == "student-compile-error" ) { 
-      updateStudent(data, COMPILEERROR);
-	
+      if ( data.id != userid ) {
+        updateStudent(data, COMPILEERROR);
+	  }
+	  
     } else if ( data.command == "student-compile-start" ) {
-      updateStudent(data, COMPILING);
+      if ( data.id != userid ) {
+        updateStudent(data, COMPILING);
+	  }
 
     } else {
       alert("Got unknown command: " + data.command);
     }
   }
+}
+
+function resetStudents () {
+  ranking = [];
+  
+  for ( var i=0; i < students.length; i++ ) {
+    students[i].status = NORESULT;
+  }
+  
+  updateStudentDisplay();
+}
+
+function addStudent2Ranking ( id, name ) {
+  for ( var i=0; i < ranking.length; i++ ) {
+    if ( ranking[i].id == id ) { // Found!
+	  return;
+	}
+  }
+
+  ranking.push({ id: id, name: name });
 }
 
 function addStudent ( data ) {
@@ -283,8 +320,14 @@ function updateStudent ( data, status ) {
 function updateStudentDisplay ( ) {
   var output = "";
 
+  var rankinghtml = "<div><p><b>Ranking ";
+  for ( var i=0; i < ranking.length && i < 3; i++ ) { // First 3
+    rankinghtml += (i+1) + ": " + ranking[i].name + " (" + ranking[i].id + ") ";	
+  }
+  rankinghtml += "</b></p></div>\n";
+  
   if ( students.length == 0 ) {
-    output = "Geen studenten hier..";
+    output = "Geen studenten in de workspace...";
   }
 
   for ( var i=0; i < students.length; ++i ) {
@@ -294,15 +337,17 @@ function updateStudentDisplay ( ) {
     output += "(" + status + ":" + students[i].name + ":" + students[i].id + ") ";
 */
 
-    output += "<div class=\"float-non\"></div>";
+    
     output += _updateStudent(students[i]);
   }    
   
-  $('#studentsoverview').html(output);
+  output += "<div class=\"float-non\"></div>";
+  
+  $('#studentsoverview').html((ranking.length > 0 ? rankinghtml + output : output));
 }
 
 function _updateStudent ( student ) {
-	var bgcolor = "background-color: #AAA;";
+	var bgcolor = "background-color: #EEE;";
 	if ( student.status == COMPILEERROR ) {
 	  bgcolor = "background-color: #F00;";
 
@@ -311,9 +356,13 @@ function _updateStudent ( student ) {
 
 	} else if ( student.status == COMPILESUCCESS ) {
 	  bgcolor = "background-color: #0F0;";
+	  
+	} else if ( student.status == NOCOMPILATION ) {
+	  bgcolor = "background-color: #999;";
+	  
 	}	
 	
-	return "<div style=\"" + bgcolor + "\" class=\"border border-primary student rounded-circle float-left text-center\"><br>" + student.name + "</div>";
+	return "<div style=\"" + bgcolor + "\" class=\"border border-primary student rounded-circle float-left text-center\"><br>" + student.name + "<br>" + student.id + "</div>";
 }
 
 function onWebsocketError ( evt ) {
@@ -359,8 +408,6 @@ function onChangeCompiler ( value ) {
 }
 
 /* Confetti and celebration */
-
-// WERKT NOG NIET HELEMAAL
 
 function celebrateShow ( message ) {
   window.addEventListener('resize', function(event){

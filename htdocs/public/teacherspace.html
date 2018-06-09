@@ -100,6 +100,10 @@
           </ul>
           <div class="tab-content mt-2">
             <div class="tab-pane fade show active" id="tabone" role="tabpanel">
+			  <div class="btn-group">
+                <a onClick="resetStudents();" class="btn btn-primary">Reset</a>
+	            <a href="#" class="btn btn-primary disabled">Examples</a>
+              </div>			
               <div id="studentsoverview"><i>Geen studenten gevonden...</i></div>
             </div>
             <div class="tab-pane fade" id="tabtwo" role="tabpanel">
@@ -107,10 +111,10 @@
                 <a onClick="compileCode(event);" class="btn btn-primary">Compile</a>
                 <a href="#" class="btn btn-primary disabled">Execute</a>
                 <a href="#" class="btn btn-primary disabled">Console</a>
-	        <a href="#" class="btn btn-primary disabled">Examples</a>
+	            <a href="#" class="btn btn-primary disabled">Examples</a>
                 <select class="btn btn-primary" id="compiler" onChange="onChangeCompiler(this.value);">
                   <option disabled>Java 6</option>
-                  <option>Java 7</option>
+                  <option disabled>Java 7</option>
                   <option selected>Java 8</option>
                   <option disabled>C++</option>
                 </select>

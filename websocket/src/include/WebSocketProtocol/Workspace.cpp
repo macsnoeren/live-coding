@@ -2,7 +2,7 @@
 
 using namespace std;
 
-unsigned int WorkspaceConnection::_nextId = 0; // Declaration of static value.
+unsigned int WorkspaceConnection::_nextId = 1; // Declaration of static value.
 
 WorkspaceConnection::WorkspaceConnection ( std::shared_ptr<WebSocketServer::Connection> connection ): m_wsConnection(connection), m_iId(WorkspaceConnection::_nextId++) {
   this->m_sIp          = "";
@@ -225,7 +225,8 @@ bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, 
     pWsConnection->setTeacher();
     pWsConnection->setToken( this->generateToken(50) );
     
-    sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": true, \"token\": \"" + pWsConnection->getToken() + "\" }\n";
+    sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": true, \"token\": \"" + pWsConnection->getToken() + "\"" +
+	           ", \"id\": \"" + pWsConnection->getId() + "\" }\n";
     if ( this->moveToTeachers(pWsConnection) ) {
 	  cout << "onMessage: Notify the students that the teacher has come in again!\n";
       string sMessage = "{ \"command\": \"teacher-joined\", \"status\": true, \"message\": \"Teacher has left the workspace!\" }\n";
@@ -268,14 +269,15 @@ bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, 
 	  sMessage = "{ \"command\": \"student-new\", \"workspace\": \"" + wsMessage.workspace + "\", \"name\": \"" + pWsConnection->getUsername() + "\", \"id\": \"" + pWsConnection->getId() + "\" }\n";
 	  this->send(pWsTeacher->getConnection(), sMessage);
 
-	  sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": true, \"token\": \"" + pWsConnection->getToken() + "\", \"workspace\": \"" + wsMessage.workspace + "\", \"teacher\": \"" + pWsConnection->getTeacherName() + "\" }\n";
+	  sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": true, \"token\": \"" + pWsConnection->getToken() + "\", \"workspace\": \"" + wsMessage.workspace + 
+	             "\", \"teacher\": \"" + pWsConnection->getTeacherName() + "\"" +
+	             ", \"id\": \"" + pWsConnection->getId() + "\"}\n";
       this->send(pWsConnection->getConnection(), sMessage);
       
     } else {
 	  cout << "executeMessage: Could not move to the students." << endl;
 	  sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": false, \"message\": \"Internal error occurred and could not register the user.\" }\n";
       this->send(pWsConnection->getConnection(), sMessage);
-
     }
 
     return true;

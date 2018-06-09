@@ -11,7 +11,11 @@ void _threadClientMain ( RemoteServer* rs, struct sockaddr_in sClientAddr, int i
   printf("_threadClientMain: RemoteServer: got connection from %s port %d\n",
 	 inet_ntoa(sClientAddr.sin_addr), ntohs(sClientAddr.sin_port));
 
-  bool bActiveConnection = true;
+  bool bActiveConnection    = true;
+  int  counterAliveMessages = 0;
+  
+  const int bufferLength = 8096;
+  char buffer[bufferLength];
 
   while ( rs->isRunning() && bActiveConnection ) {
     string sRequest;
@@ -25,10 +29,7 @@ void _threadClientMain ( RemoteServer* rs, struct sockaddr_in sClientAddr, int i
 
       int n = send(iClientFd, sRequest.c_str(), sRequest.size(), 0);
 
-  	  cout << "_threadClientMain: SEND n = '" << n << "'" << endl;
-	  
-      const int bufferLength = 8096;
-      char buffer[bufferLength];
+  	  cout << "_threadClientMain: SEND n = '" << n << "'" << endl;	  
 
       bzero(buffer, bufferLength);
 
@@ -58,7 +59,31 @@ void _threadClientMain ( RemoteServer* rs, struct sockaddr_in sClientAddr, int i
 	    //       Now just sent it back to all workspaces for example!
       }
 
-    }
+    } else { // No request found. Send each x seconds a-live requests
+	  if ( counterAliveMessages > 100000 ) {
+		cout << "_threadClientMain: Send alive message!" << endl;
+		sRequest = "alive-message\n";
+		if ( send(iClientFd, sRequest.c_str(), sRequest.size(), 0) <= 0 ) {
+		  rs->error("_threadClientMain: ERROR reading from socket");
+		  bActiveConnection = false;
+		  
+		} else {
+		  bzero(buffer, bufferLength);
+          if ( read(iClientFd, buffer, bufferLength-1) <= 0 ) {
+		    rs->error("_threadClientMain: ERROR reading from socket");
+		    bActiveConnection = false;  
+
+ 		  } else {
+			cout << "_threadClientMain: Got alive reply '" << buffer << "'" << endl;
+		  }
+		}
+	    counterAliveMessages = 0;
+		sRequest = "";
+
+	  } else {
+	    counterAliveMessages++;
+	  }
+	}
 
     usleep(100);
   }
@@ -184,14 +209,23 @@ bool RemoteServer::stop () {
 }
 
 bool RemoteServer::pushRequest (string & sId, string & sRequest) {
-//  if ( !this->m_bClientsConnected ) { // FIX THIS IN FUNCTION
-  if ( this->getTotalConnectedClients() < 1 ) { // FIX THIS IN FUNCTION
+  this->m_mqRequests.lock();
+
+  if ( sId == "" || sRequest == "" ) {
+    cout << "RemoteServer: pushRequest cannot have an empty sId or sRequest." << endl;
+    this->m_mqRequests.unlock();
+    return false;
+  }  
+
+  if ( this->getTotalConnectedClients() < 1 ) { 
     cout << "RemoteServer: No remote clients are available to serve request, so denying your request ... sorry!";
+    this->m_mqRequests.unlock();
     return false;    
   }
 
   if ( this->m_qRequests.size() > 10 ) {
     cout << "RemoteServer: Cannot accept your request due to too many requests in the queue (" << m_qRequests.size() << ")!" << endl;
+    this->m_mqRequests.unlock();
     return false;
   }
 
@@ -199,21 +233,23 @@ bool RemoteServer::pushRequest (string & sId, string & sRequest) {
   RMRequest.id = sId;
   RMRequest.request = sRequest;
 
-  this->m_mqRequests.lock();
   this->m_qRequests.push(RMRequest);
-  this->m_mqRequests.unlock();
 
   cout << "RemoteServer: Accepted a new request with ID " << sId << " (queue: " << m_qRequests.size() << ")." << endl;
+
+  this->m_mqRequests.unlock();
   
   return true;
 }
 
 bool RemoteServer::pullRequest ( string & sId, string & sRequest ) {
+  this->m_mqRequests.lock();
+
   if ( this->m_qRequests.empty() ) {
+    this->m_mqRequests.unlock();
     return false;
   }
 
-  this->m_mqRequests.lock();
   RemoteServerRequest RMRequest = this->m_qRequests.front();
   this->m_qRequests.pop();
   this->m_mqRequests.unlock();
@@ -231,23 +267,32 @@ bool RemoteServer::pushAnswers ( string & sId, string & sAnswer ) {
 
   this->m_mqAnswers.lock();
   this->m_qAnswers.push(RMAnswer);
-  this->m_mqAnswers.unlock();
 
   cout << "RemoteServer: Accepted a new answer (queue: " << m_qAnswers.size() << ")." << endl;
+
+  this->m_mqAnswers.unlock();
   
   return true;
 }
 
 bool RemoteServer::pullAnswers ( string & sId, string & sAnswer ) {
+  this->m_mqAnswers.lock();
+
   if ( this->m_qAnswers.empty() ) {
+    this->m_mqAnswers.unlock();
     return false;
   }
 
-  this->m_mqAnswers.lock();
   RemoteServerAnswer RMAnswer = this->m_qAnswers.front();
   this->m_qAnswers.pop();
   this->m_mqAnswers.unlock();
 
+  if ( RMAnswer.id == "" ) {
+    cout << "RemoteServer::pullAnswers: RMAnswer.id cannot be empty!" << endl;
+    this->m_mqAnswers.unlock();
+	return false;
+  }
+  
   sId = RMAnswer.id;
   sAnswer = RMAnswer.answer;
 
