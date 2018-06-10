@@ -282,14 +282,15 @@ bool WebSocketProtocolWorkspace::executeMessage ( WorkspaceMessage & wsMessage, 
 
     return true;
 
-  } else if ( wsMessage.command == "compile-java" || wsMessage.command == "compile-java-8" ||  
-              wsMessage.command == "execute-java" || wsMessage.command == "execute-java-8" ) {  
-    cout << "ASDASDASDASDASD" << endl;	
+	// TODO: Make it language independent.
+  } else if ( wsMessage.command == "compile" || wsMessage.command == "execute" ||
+              wsMessage.command == "compile-java" || wsMessage.command == "compile-java-8" ||  
+              wsMessage.command == "execute-java" || wsMessage.command == "execute-java-8" ) {  	
     this->addCompileRequest(wsMessage);
 	sMessage = "{ \"command\": \"student-compile-start\", \"workspace\": \"" + wsMessage.workspace + "\", \"name\": \"" + pWsConnection->getUsername() + "\", \"id\": \"" + pWsConnection->getId() + "\" }\n";
     this->send2WorkspaceTeacher(pWsConnection->getWorkspaceId(), sMessage);    
 
-    sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": false, \"message\": \"Your request has been received...\" }\n";      
+    sMessage = "{ \"command\": \"" + wsMessage.command + "\", \"status\": false, \"message\": \"Your request has been sent...\" }\n";      
     this->send(pWsConnection->getConnection(), sMessage);
     return true;
 
@@ -504,6 +505,8 @@ bool WebSocketProtocolWorkspace::processMessage ( string & message, WorkspaceMes
   cout << "Processing message '" << message << "'" << endl;
   cout << "--------------------------------" << endl;
 
+  //websocketSend(command + ";" + language + ";" + workspaceId + ";" + username + ";" + token + ";" + data + "\n");
+  
   if ( message.at(message.length()-1) == '\n' ) {
     message = message.substr(0, message.length()-1);
   }
@@ -521,6 +524,15 @@ bool WebSocketProtocolWorkspace::processMessage ( string & message, WorkspaceMes
   posPrev = pos + 1;
   cout << "Found command: " << wsMessage.command << endl;
 
+  // Find language
+  pos = message.find(token, posPrev);
+  if ( pos == string::npos )
+    return false;
+
+  wsMessage.language = message.substr(posPrev, pos - posPrev);
+  posPrev = pos + 1;
+  cout << "Found language: " << wsMessage.language << endl;  
+  
   // Find workspace ID
   pos = message.find(token, posPrev);
   if ( pos == string::npos )
@@ -529,6 +541,15 @@ bool WebSocketProtocolWorkspace::processMessage ( string & message, WorkspaceMes
   wsMessage.workspace = message.substr(posPrev, pos - posPrev);
   posPrev = pos + 1;
   cout << "Found workspace: " << wsMessage.workspace << endl;
+
+  // Find assignment
+  pos = message.find(token, posPrev);
+  if ( pos == string::npos )
+    return false;
+
+  wsMessage.assignment = message.substr(posPrev, pos - posPrev);
+  posPrev = pos + 1;
+  cout << "Found assignment: " << wsMessage.assignment << endl;
 
   // Find username
   pos = message.find(token, posPrev);

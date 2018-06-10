@@ -7,8 +7,6 @@
   <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" type="text/css">
   <link rel="stylesheet" href="confetti/confetti.css" type="text/css"> 
 
-  <script src="js/workspace.js" type="text/javascript"></script>
-
   <style type="text/css" media="screen">
       html, body {
         margin: 0;
@@ -113,10 +111,11 @@
                 <a href="#" class="btn btn-primary disabled">Console</a>
 	            <a href="#" class="btn btn-primary disabled">Examples</a>
                 <select class="btn btn-primary" id="compiler" onChange="onChangeCompiler(this.value);">
-                  <option disabled>Java 6</option>
-                  <option disabled>Java 7</option>
-                  <option selected>Java 8</option>
-                  <option disabled>C++</option>
+                  <option value="java-6" disabled>Java 6</option>
+                  <option value="java-7" disabled>Java 7</option>
+                  <option value="java-8" selected>Java 8</option>
+                  <option value="c">C</option>
+                  <option value="cpp">C++</option>
                 </select>
               </div>
               <div class="row">
@@ -169,6 +168,8 @@
   <script src="bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
   <script src="ace/ace.js" type="text/javascript" charset="utf-8"></script>
   <script src="confetti/confetti.js" type="text/javascript"></script>
+  <script src="js/workspace.js" type="text/javascript"></script>
+
   <script>
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/cobalt");

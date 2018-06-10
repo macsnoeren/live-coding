@@ -13,6 +13,8 @@ var teacherName   = "";
 var teacherJoined = true;
 var students      = [];
 var ranking       = []; // Ranking of the student with success compilation
+var language      = $("#compiler").val();
+var assignment    = "compile-success";
 
 /* Status */
 const NOTCONNECTED     = 0;
@@ -177,7 +179,7 @@ function connectWorkspace () {
 }
 
 function send2Server ( command, data ) {
-  websocketSend(command + ";" + workspaceId + ";" + username + ";" + token + ";" + data + "\n");
+  websocketSend(command + ";" + language + ";" + workspaceId + ";" + assignment + ";" + username + ";" + token + ";" + data + "\n");
 }
 
 function onWebsocketClose ( evt ) {
@@ -220,7 +222,7 @@ function onWebsocketMessage ( evt ) {
       delStudent(data);
       //alert("Delete Student: " + data.name);
 
-    } else if ( data.command == "compiler-result" ) {
+    } else if ( data.command == "compile-result" || data.command == "compiler-result" ) {
       loadCompileResult(data.result + (data.execution ? data.execution : ""));
       if ( data.status ) {
 		send2Server("compile-success", editor.getValue());
@@ -242,7 +244,11 @@ function onWebsocketMessage ( evt ) {
       teacherJoined = true;
       setWorkspaceInfo();
 	  
-    } else if ( data.command == "compile-java" || data.command == "execute-java" ) { // Information on the compile-java command!
+	// TODO: change everything to indepent to language, so compile-java to compile. The language
+	//       should be added to a different collumn
+    } else if ( data.command == "compile" || data.command == "compile-error" || 
+	            data.command == "execute" || data.command == "execute-error" ||
+	            data.command == "compile-java" || data.command == "execute-java" ) { // Information on the compile-java command!
       loadCompileResult(data.message);
 	  updateStudent(NOCOMPILATION);
 
@@ -375,13 +381,15 @@ function websocketSend ( message ) {
 
 function compileCode (event) {
   event.preventDefault();
-  send2Server("compile-java", editor.getValue());
+  //send2Server("compile-java", editor.getValue()); //old
+  send2Server("compile", editor.getValue()); // new: language independent
   //window.location.href = "#output"; // Go to anchor
 }
 
 function executeCode (event) {
   event.preventDefault();
-  send2Server("execute-java", editor.getValue());
+  //send2Server("execute-java", editor.getValue()); //old
+  send2Server("execute", editor.getValue()); //new: language independent
   //window.location.href = "#output"; // Go to anchor
 }
 
@@ -410,7 +418,7 @@ function loadCompileResult ( result ) {
 }
 
 function onChangeCompiler ( value ) {
-  //alert(value);
+  language = value;
 }
 
 /* Confetti and celebration */

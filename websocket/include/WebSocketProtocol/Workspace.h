@@ -31,6 +31,8 @@ struct WorkspaceClientMessage {
 struct WorkspaceMessage {
   std::string command;
   std::string workspace;
+  std::string language;
+  std::string assignment;
   std::string username;
   std::string token;
   std::string data;

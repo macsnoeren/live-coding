@@ -70,14 +70,17 @@ int main() {
     while ( p.isCompileRequestAvailable() && counter++ < 10 ) {
       WorkspaceMessage wm = p.getCompileRequest();
       	  
-	  wm.data = wm.command + ":" + wm.data;
+	  wm.data = wm.command    + ":" + 
+	            wm.language   + ":" +
+                wm.assignment + ":" +
+ 				wm.data; // Push the extra data to the remote server
 		  
       //if ( rm.pushRequest(wm.token, wm.data) ) {
       if ( rm.pushRequest(wm.token, wm.data) ) {
 	    vWaitingCompileRequests.push_back(wm);
 	
       } else {
-	    string sMessage = "{ \"command\": \"" + wm.command + "\", \"status\": \"false\", \"message\": \"ERROR: No compilers available.\" }\n";      
+	    string sMessage = "{ \"command\": \"compile-error\", \"status\": \"false\", \"message\": \"ERROR: No compilers available.\" }\n";      
 	    p.send2Token(wm.token, sMessage);
       }
 	  
