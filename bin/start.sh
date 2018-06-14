@@ -1,10 +1,9 @@
 #!/bin/sh
 
-./websocket&
+./websocket.js > /dev/null &
 
 sleep 2
 
-./remoteclient.pl&
+./rc-live-coding.pl worker1 > /dev/null &
 
-top
 

@@ -30,7 +30,8 @@ $| = 1;
 
 # create a connecting socket
 my $socket = new IO::Socket::INET (
-				   PeerHost => 'vmacman.jmnl.nl',
+				   #PeerHost => 'vmacman.jmnl.nl',
+				   PeerHost => 'localhost',
 				   PeerPort => '20000',
 				   Proto => 'tcp',
 				   Blocking => 1,
@@ -146,7 +147,8 @@ sub compileJava8 {
       # Sandboxing?? Or shutdown of the server?
       if ( $command =~ /^execute/ ) {
 	$result->{result} = "$version\n";
-	$result->{execution} = "OUTPUT OF YOUR CODE:\n " . `java $className`;
+	#$result->{execution} = "OUTPUT OF YOUR CODE:\n " . `java $className`;
+	$result->{execution} = "OUTPUT OF YOUR CODE:\n For security reasons, execution is not yet enabled in this version";
       }
       
       $result = encode_json($result);
@@ -168,14 +170,14 @@ sub compileJava8 {
     $result = "ERROR: Could not determine your application name, forgot public class?? (JAVA?)";
   }
 
-    $socket->send( encode_json(
-			       {
-				command => "compile-error",
-				status  => 0,
-				message  => $result,
-			       }
-			      )
-		 );
+  $socket->send( encode_json(
+			     {
+			      command => "compile-error",
+			      status  => 0,
+			      result  => $result,
+			     }
+			    )
+	       );
   return 0;
 }
 
@@ -191,13 +193,14 @@ sub compileCPP {
     my $version = `g++ --version 2>&1`;
     my $result  = `g++ main.cpp -o main 2>&1`;
     
-    $result = { command => "compile-result",
+    $result = { command => ($result ? "compile-error" : "compile-success"),
 		status  => ($result ? 0 : 1),
-		result  => ($result ? "$version\n\n$result" : "$version\n\n"),
+		result  => ($result ? $result : "$version\nGeen fouten gevonden!\n"),
 	      };
 
     if ( $command =~ /^execute/ ) {
-      $result->{execution} = `./main 2>&1`;
+      $result->{execution} = "OUTPUT OF YOUR CODE:\n For security reasons, execution is not yet enabled in this version";
+      #$result->{execution} = `./main 2>&1`;
     }
 
     $result = encode_json($result);
@@ -229,13 +232,14 @@ sub compileC {
     my $version = `gcc --version 2>&1`;
     my $result  = `gcc main.c -o main 2>&1`;
     
-    $result = { command => "compile-result",
+    $result = { command => ($result ? "compile-error" : "compile-success"),
 		status  => ($result ? 0 : 1),
-		result  => ($result ? "$version\n\n$result" : "$version\n\n"),
+		result  => ($result ? $result : "$version\nGeen fouten gevonden!\n"),
 	      };
 
     if ( $command =~ /^execute/ ) {
-      $result->{execution} = `./main 2>&1`;
+      $result->{execution} = "OUTPUT OF YOUR CODE:\n For security reasons, execution is not yet enabled in this version";
+      #$result->{execution} = `./main 2>&1`;
     }
 
     $result = encode_json($result);
