@@ -21,9 +21,9 @@ const CONNECTED        = 3;
 var status             = NOTCONNECTED;
 
 /* The web socket uri to connect with. */
-var websocketUri = "wss://vmacman.jmnl.nl/websocket/workspace";
+//var websocketUri = "wss://vmacman.jmnl.nl/websocket/workspace";
+var websocketUri = "wss://dev-ti-live.avans.nl/websocket/workspace";
 var websocket    = null;
-//wss://echo.websocket.org/";
 
 /* 
  * Pre loading screen

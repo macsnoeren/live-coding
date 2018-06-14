@@ -1,7 +1,8 @@
-#!/usr/bin/env node
+#!/usr/bin/env nodejs
 
 // Global variables
-var port = 3000; 
+//var port = 3000; 
+var port = 4000; // Development 
 
 var WebSocketServer = require('websocket').server;
 var http = require('http');
@@ -479,7 +480,6 @@ function sendAliveMessage () {
   }
 }
 
-// HIER BEN IK
 function finishRequest ( socket, message ) {
   for ( var i=0; i < clients.length; i++ ) {
     if ( clients[i].socket == socket && clients[i].request != null ) {
