@@ -1,8 +1,12 @@
 #!/usr/bin/env nodejs
 
 // Global variables
-//var port = 3000; 
-var port = 4000; // Development 
+var port = 3000;
+
+
+if ( process.argv.length > 2 ) {
+  port = process.argv[2];
+}
 
 var WebSocketServer = require('websocket').server;
 var http = require('http');
