@@ -158,15 +158,18 @@
       }
     );
 
-    loadEditorCode(`public class YourFirstJavaApplication {
+	var code = "public class YourFirstJavaApplication {\n" +
+	           "\n" +
+			   "	public static void main (String[] args) {" +
+			   "\n" +
+			   "		// Schrijf hier jouw code!" +
+			   "\n" +
+			   "	}\n" +
+			   "}\n\n";
+	
+    loadEditorCode(code);
 
-    public static void main (String[] args) {
-
-        System.out.println ("Hello World!");
-
-    }
-
-}`);
+	// System.out.println ("Hello World!");
 
    /* celebration */
    var confetti = new confetti.Context('confetti');

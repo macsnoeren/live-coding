@@ -4,15 +4,12 @@
  */
 
 /* Workspace environment */
-var workspaceId   = ""; 
-var token         = "12345";
-var username      = "unknown";
-var userid        = "unknown";
+var workspace     = { teacher: null, students: [] };
+var workspaceName = "";
+var token         = "";
+var username      = "";
 var teacher       = false;
-var teacherName   = "";
-var teacherJoined = true;
-var students      = [];
-var ranking       = []; // Ranking of the student with success compilation
+
 var language      = $("#compiler").val();
 var assignment    = "compile-success";
 
@@ -22,13 +19,6 @@ const CONNECTWEBSOCKET = 1;
 const CONNECTWORKSPACE = 2;
 const CONNECTED        = 3;
 var status             = NOTCONNECTED;
-
-/* Student Status */
-const NORESULT       = 0;
-const COMPILEERROR   = 1;
-const COMPILING      = 2;
-const COMPILESUCCESS = 3;
-const NOCOMPILATION  = 4;
 
 /* The web socket uri to connect with. */
 var websocketUri = "wss://vmacman.jmnl.nl/websocket/workspace";
@@ -53,19 +43,19 @@ function onWindowLoaded () {
   }
 
   // Check the workspace ID that is given by the application before sending!
-  workspaceId = getUrlVar("workspace");  
-  var reWorkspace = new RegExp("^\\w{5,10}$");
-  if ( !reWorkspace.test(workspaceId) ) {
-    alert("ERROR: WorkspaceId is niet geldig!");
-    window.location.href = (teacher ? "teacher.html" : "index.html");
+  workspaceName = getUrlVar("workspace");  
+  var reWorkspace = new RegExp("^\\w{1,40}$");
+  if ( !reWorkspace.test(workspaceName) ) {
+    alert("ERROR: Workspace is niet geldig!");
+    //window.location.href = (teacher ? "teacher.html" : "index.html");
   }
 
   // Check the username
   username = getUrlVar("username");
-  var reUsername = new RegExp("^[a-zA-Z0-9 -_]{1,40}$");
+  var reUsername = new RegExp("^[\\w -_]{1,40}$");
   if ( !reUsername.test(username) ) {
     alert("ERROR: Username is niet geldig!");
-    window.location.href = (teacher ? "teacher.html" : "index.html");
+    //window.location.href = (teacher ? "teacher.html" : "index.html");
   }
   
   openWebsocket();
@@ -78,19 +68,6 @@ function logout () {
   window.location.href = "index.html";
 } 
 
-function setWorkspaceInfo () {
-  //$('#workspaceinfo').html("Workspace (" + (teacher ? "Docent" : "Student") + "): " + workspaceId + ", " + username + " (" + token + ")" + (!teacher ? ", Teacher: " + teacherName : ""));
-  
-  bgcolor = "background-color: #ffad99;";
-  if ( status == CONNECTED && teacherJoined ) {
-	bgcolor = "background-color: #e0ffb3;";
-  }
-    
-  $('#workspaceinfo').html("<div class=\"py-2 px-2\" style=\"" + bgcolor + "\"\>Workspace:  " + workspaceId + " als " +
-                           (teacher ? "docent" : "student") + " met naam " + username + " (" + userid + ")" +
-                           (teacher ? " " : "<br/>Docent: " + teacherName) + (teacherJoined ? "" : " (niet meer aanwezig)") + "</div>");
-}
-
 /* When the body is loaded, this function is called. */
 function onBodyLoaded () {
   // onWindowLoaded is the event that is fired when the full page is loaded.
@@ -102,7 +79,6 @@ function endLoadingScreen () {
   $("#ws-loader-container").html("<h3><b>Succes!!</b></h3>");
   $("#ws-progress-bar").width(600);
   $(".ws-loader").fadeOut(2000, function () { workspaceStart(); });
-  //workspaceStart();
 }
  
 /* 
@@ -150,8 +126,8 @@ function closeWebsocket () {
     
   } else {
     console.log("Cannot close a socket that is not connected or is in a connecting state!");
-    //alert("Connection Error\nPlease try again later.");
-    window.location.href = (teacher ? "teacher.html" : "index.html");
+    alert("Connection Error\nPlease try again later.");
+    //window.location.href = (teacher ? "teacher.html" : "index.html");
   }
 }
 
@@ -169,17 +145,17 @@ function onWebsocketOpen ( evt ) {
   }
 }
 
-function connectWorkspace () {
+function connectWorkspace ( ) {
   if ( teacher ) {
-    send2Server("teacher-start", "");
+    websocketSend( JSON.stringify( { command: 'teacher-start', username: username, workspace: workspaceName } ) );	
     
   } else {
-    send2Server("student-start", "");
+    websocketSend( JSON.stringify( { command: 'student-start', username: username, workspace: workspaceName } ) );	
   }
 }
 
 function send2Server ( command, data ) {
-  websocketSend(command + ";" + language + ";" + workspaceId + ";" + assignment + ";" + username + ";" + token + ";" + data + "\n");
+  websocketSend( JSON.stringify( { command: command, username: username, language: language, workspace: workspaceName, assignment: assignment, token: token, data: data } ) );	
 }
 
 function onWebsocketClose ( evt ) {
@@ -193,56 +169,51 @@ function onWebsocketMessage ( evt ) {
 
     if ( data.command == "teacher-start" || data.command == "student-start" ) {
       if ( status == CONNECTWORKSPACE ) {
-	if ( data.status ) { // Success!
-	  status = CONNECTED;
-	  teacher = ( data.command == "teacher-start" );
-	  teacherName = ( !teacher ? data.teacher : "" );
-	  token = data.token;
-	  userid = data.id;
-	  statusWebsocket("Connected");
-	  setWorkspaceInfo();
-	  endLoadingScreen(); // workspace is ready!
+	    if ( data.status ) { // Success!
+	      status = CONNECTED;
+	      teacher = ( data.command == "teacher-start" );
+	      teacherName = ( !teacher ? data.teacher : "" );
+	      token = data.token;
+	      userid = data.id;
+	      statusWebsocket("Connected");
+	      updateWorkspaceInfo();
+	      endLoadingScreen(); // workspace is ready!
 	  
-	} else { // No success!
-	  statusWebsocket("Workspace Error");
-	  alert("Workspace Error:\n\n" + data.message + "\n\nProbeer het later opnieuw!");
-
-	  window.location.href = (teacher ? "teacher.html" : "index.html");
-	}
+	    } else { // No success!
+	      statusWebsocket("Workspace Error");
+	      alert("Workspace Error:\n\n" + data.message + "\n\nProbeer het later opnieuw!");
+  	      //window.location.href = (teacher ? "teacher.html" : "index.html");
+	    }
 
       } else {
-	console.log("Got teacher-start message while I am not connecting with the workspace!");
+	    console.log("Got teacher-start message while I am not connecting with the workspace!");
       }
 
-    } else if ( data.command == "student-new" ) {
-      addStudent(data);
-      //alert("New Student: " + data.name + " (" + data.id + ")");
+    } else if ( data.command == "workspace" ) {
+      workspace = data;
+	  updateWorkspace();
 
-    } else if ( data.command == "student-del" ) { // Student is gone!
-      delStudent(data);
-      //alert("Delete Student: " + data.name);
-
-    } else if ( data.command == "compile-result" || data.command == "compiler-result" ) {
+    } else if ( data.command == "compile-success" ) {
       loadCompileResult(data.result + (data.execution ? data.execution : ""));
-      if ( data.status ) {
-		send2Server("compile-success", editor.getValue());
-	    celebrateShow("Je hebt de opdracht goed volbracht door het programma foutloos te compileren!");
-		
-      } else {
-  		send2Server("compile-error", editor.getValue());
-	  }
+      celebrateShow("Je hebt de opdracht goed volbracht door het programma foutloos te compileren!");
 
-    } else if ( data.command == "teacher-quit" ) {
+    } else if ( data.command == "compile-status" ) {
+      loadCompileResult(data.message);
+
+    } else if ( data.command == "compile-error" ) {
+      loadCompileResult(data.result);
+
+	  } else if ( data.command == "teacher-quit" ) {
       //alert("Teacher has left the workspace.\n");
       //window.location.href = (teacher ? "teacher.html" : "index.html");
 	  teacherJoined = false;
-	  setWorkspaceInfo();
+	  updateWorkspaceInfo();
 
     } else if ( data.command == "teacher-joined" ) {
       //alert("Teacher has rejoined the workspace.\n");
       //window.location.href = (teacher ? "teacher.html" : "index.html");
       teacherJoined = true;
-      setWorkspaceInfo();
+      updateWorkspaceInfo();
 	  
 	// TODO: change everything to indepent to language, so compile-java to compile. The language
 	//       should be added to a different collumn
@@ -250,22 +221,22 @@ function onWebsocketMessage ( evt ) {
 	            data.command == "execute" || data.command == "execute-error" ||
 	            data.command == "compile-java" || data.command == "execute-java" ) { // Information on the compile-java command!
       loadCompileResult(data.message);
-	  updateStudent(NOCOMPILATION);
+	  //updateStudent(NOCOMPILATION);
 
     } else if ( data.command == "student-compile-success" ) {
       if ( data.id != userid ) {
 	    addStudent2Ranking(data.id, data.name);
-        updateStudent(data, COMPILESUCCESS);
+        //updateStudent(data, COMPILESUCCESS);
 	  }
 
     } else if ( data.command == "student-compile-error" ) { 
       if ( data.id != userid ) {
-        updateStudent(data, COMPILEERROR);
+        //updateStudent(data, COMPILEERROR);
 	  }
 	  
     } else if ( data.command == "student-compile-start" ) {
       if ( data.id != userid ) {
-        updateStudent(data, COMPILING);
+        //updateStudent(data, COMPILING);
 	  }
 
     } else {
@@ -284,6 +255,23 @@ function resetStudents () {
   updateStudentDisplay();
 }
 
+function updateWorkspaceInfo () {
+  bgcolor = "background-color: #ffad99;";
+  if ( status == CONNECTED && workspace.teacher != null ) {
+    bgcolor = "background-color: #e0ffb3;";
+  }
+  
+  $('#workspaceinfo').html("<div class=\"py-2 px-2\" style=\"" + bgcolor + "\"\>Workspace:  " + workspaceName + " als " +
+                           (teacher ? "docent" : "student") + " met naam " + username + " (" + token + ")" +
+                           (teacher ? " " : "<br/>Docent: " + (workspace.teacher != "" ? workspace.teacher : "<b><i>Afwezig</i></b>") + "</div>"));
+}
+
+
+function updateWorkspace () {
+  updateWorkspaceInfo();
+  updateStudentDisplay();
+}
+
 function addStudent2Ranking ( id, name ) {
   for ( var i=0; i < ranking.length; i++ ) {
     if ( ranking[i].id == id ) { // Found!
@@ -292,11 +280,6 @@ function addStudent2Ranking ( id, name ) {
   }
 
   ranking.push({ id: id, name: name });
-}
-
-function addStudent ( data ) {
-  students.push( { name: data.name, id: data.id, status: NORESULT });
-  updateStudentDisplay();
 }
 
 function delStudent ( data ) {
@@ -313,30 +296,22 @@ function delStudent ( data ) {
   updateStudentDisplay();
 }
 
-function updateStudent ( data, status ) {
-  for ( var i=0; i < students.length; ++i ) {
-    if ( data.id == students[i].id ) {
-      students[i].status = status; //( data.status ? COMPILESUCCESS : COMPILEERROR );
-    }
-  }  
-
-  updateStudentDisplay();
-}
-
 function updateStudentDisplay ( ) {
   var output = "";
 
+  /*
   var rankinghtml = "<div><p><b>Ranking ";
   for ( var i=0; i < ranking.length && i < 3; i++ ) { // First 3
     rankinghtml += (i+1) + ": " + ranking[i].name + " (" + ranking[i].id + ") ";	
   }
   rankinghtml += "</b></p></div>\n";
+  */
   
-  if ( students.length == 0 ) {
+  if ( workspace.students.length == 0 ) {
     output = "Geen studenten in de workspace...";
   }
 
-  for ( var i=0; i < students.length; ++i ) {
+  for ( var i=0; i < workspace.students.length; ++i ) {
 	  
 /*	  
     var status = ( students[i].status == NORESULT ? "?" : ( students[i].status == COMPILESUCCESS ? "+" : "-" ) );  
@@ -344,31 +319,32 @@ function updateStudentDisplay ( ) {
 */
 
     
-    output += _updateStudent(students[i]);
+    output += _updateStudent(workspace.students[i]);
   }    
   
   output += "<div class=\"float-non\"></div>";
   
-  $('#studentsoverview').html((ranking.length > 0 ? rankinghtml + output : output));
+  //$('#studentsoverview').html((ranking.length > 0 ? rankinghtml + output : output));
+  $('#studentsoverview').html(output);
 }
 
 function _updateStudent ( student ) {
 	var bgcolor = "background-color: #EEE;";
-	if ( student.status == COMPILEERROR ) {
+	if ( student.status == "COMPILE_ERROR" ) {
 	  bgcolor = "background-color: #F00;";
 
-	} else if ( student.status == COMPILING ) {
+	} else if ( student.status == "COMPILING" ) {
 	  bgcolor = "background-color: #00F;";
 
-	} else if ( student.status == COMPILESUCCESS ) {
+	} else if ( student.status == "COMPILE_SUCCESS" ) {
 	  bgcolor = "background-color: #0F0;";
 	  
-	} else if ( student.status == NOCOMPILATION ) {
+	} else if ( student.status == "NO_COMPILERS" ) {
 	  bgcolor = "background-color: #999;";
 	  
 	}	
 	
-	return "<div style=\"" + bgcolor + "\" class=\"border border-primary student rounded-circle float-left text-center\"><br>" + student.name + "<br>" + student.id + "</div>";
+	return "<div style=\"" + bgcolor + "\" class=\"border border-primary student rounded-circle float-left text-center\"><br>" + student.username  + "</div>";
 }
 
 function onWebsocketError ( evt ) {
@@ -381,16 +357,12 @@ function websocketSend ( message ) {
 
 function compileCode (event) {
   event.preventDefault();
-  //send2Server("compile-java", editor.getValue()); //old
-  send2Server("compile", editor.getValue()); // new: language independent
-  //window.location.href = "#output"; // Go to anchor
+  websocketSend( JSON.stringify( { command: "compile", token: token, compiler: language, checker: "compile-success", code: editor.getValue() } ) );
 }
 
 function executeCode (event) {
   event.preventDefault();
-  //send2Server("execute-java", editor.getValue()); //old
-  send2Server("execute", editor.getValue()); //new: language independent
-  //window.location.href = "#output"; // Go to anchor
+  websocketSend( JSON.stringify( { command: "execute", token: token, compiler: language, checker: "compile-success", code: editor.getValue() } ) );
 }
 
 function processMessage (command, data) {
