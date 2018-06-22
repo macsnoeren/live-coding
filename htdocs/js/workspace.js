@@ -21,8 +21,7 @@ const CONNECTED        = 3;
 var status             = NOTCONNECTED;
 
 /* The web socket uri to connect with. */
-//var websocketUri = "wss://vmacman.jmnl.nl/websocket/workspace";
-var websocketUri = "wss://dev-ti-live.avans.nl/websocket/workspace";
+var websocketUri = "wss://" + window.location.hostname + "/websocket";
 var websocket    = null;
 
 /* 
@@ -47,7 +46,7 @@ function onWindowLoaded () {
   var reWorkspace = new RegExp("^\\w{1,40}$");
   if ( !reWorkspace.test(workspaceName) ) {
     alert("ERROR: Workspace is niet geldig!");
-    //window.location.href = (teacher ? "teacher.html" : "index.html");
+    window.location.href = (teacher ? "teacher.html" : "index.html");
   }
 
   // Check the username
@@ -55,7 +54,7 @@ function onWindowLoaded () {
   var reUsername = new RegExp("^[\\w -_]{1,40}$");
   if ( !reUsername.test(username) ) {
     alert("ERROR: Username is niet geldig!");
-    //window.location.href = (teacher ? "teacher.html" : "index.html");
+    window.location.href = (teacher ? "teacher.html" : "index.html");
   }
   
   openWebsocket();
@@ -127,7 +126,7 @@ function closeWebsocket () {
   } else {
     console.log("Cannot close a socket that is not connected or is in a connecting state!");
     alert("Connection Error\nPlease try again later.");
-    //window.location.href = (teacher ? "teacher.html" : "index.html");
+    window.location.href = (teacher ? "teacher.html" : "index.html");
   }
 }
 
@@ -182,7 +181,7 @@ function onWebsocketMessage ( evt ) {
 	    } else { // No success!
 	      statusWebsocket("Workspace Error");
 	      alert("Workspace Error:\n\n" + data.message + "\n\nProbeer het later opnieuw!");
-  	      //window.location.href = (teacher ? "teacher.html" : "index.html");
+  	      window.location.href = (teacher ? "teacher.html" : "index.html");
 	    }
 
       } else {
@@ -191,7 +190,7 @@ function onWebsocketMessage ( evt ) {
 
     } else if ( data.command == "workspace" ) {
       workspace = data;
-	  updateWorkspace();
+      updateWorkspace();
 
     } else if ( data.command == "compile-success" ) {
       loadCompileResult(data.result + (data.execution ? data.execution : ""));
@@ -202,23 +201,11 @@ function onWebsocketMessage ( evt ) {
 
     } else if ( data.command == "compile-error" ) {
       loadCompileResult(data.result);
-
-	  } else if ( data.command == "teacher-quit" ) {
-      //alert("Teacher has left the workspace.\n");
-      //window.location.href = (teacher ? "teacher.html" : "index.html");
-	  teacherJoined = false;
-	  updateWorkspaceInfo();
-
-    } else if ( data.command == "teacher-joined" ) {
-      //alert("Teacher has rejoined the workspace.\n");
-      //window.location.href = (teacher ? "teacher.html" : "index.html");
-      teacherJoined = true;
-      updateWorkspaceInfo();
-	  
-	// TODO: change everything to indepent to language, so compile-java to compile. The language
-	//       should be added to a different collumn
+      
+      // TODO: change everything to indepent to language, so compile-java to compile. The language
+      //       should be added to a different collumn
     } else if ( data.command == "compile" || data.command == "compile-error" || 
-	            data.command == "execute" || data.command == "execute-error" ||
+		data.command == "execute" || data.command == "execute-error" ||
 	            data.command == "compile-java" || data.command == "execute-java" ) { // Information on the compile-java command!
       loadCompileResult(data.message);
 	  //updateStudent(NOCOMPILATION);

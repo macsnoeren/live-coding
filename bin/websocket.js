@@ -1,1 +1,1 @@
-../websocket/bin/websocket.js
+../websocket/websocket.js
