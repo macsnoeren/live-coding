@@ -3,13 +3,35 @@
 use strict;
 use warnings;
 
-my $workingDir = $ARGV[0] || "";
+use POSIX qw(setsid);
+use utf8;
 
-if ( !$workingDir || $workingDir !~ /^\w+$/ ) {
-  print "Syntax: rc-live-coding.pl <work-dir>\n";
+my $totalThreads = $ARGV[0] || "";
+
+if ( !$totalThreads || $totalThreads !~ /^\d+$/ ) {
+  print "Syntax: $0 <total_threads>\n";
   exit;
 }
 
+daemonize();
+
+my $workingDir = "Worker";
+
+for ( my $i=0; $i < $totalThreads-1; $i++ ) {
+  
+  my $pid = fork();
+
+  if ( $pid ) { # main thread
+    
+
+  } else {
+    $workingDir = "$workingDir-$i";
+    $i = $totalThreads + 1;
+  }
+}
+
+print "Thread $$: Started with $workingDir\n";
+ 
 if ( !-d $workingDir && !mkdir($workingDir) ) {
   die "ERROR: Could not create the '$workingDir' directory.\n";
 }
@@ -91,6 +113,149 @@ $socket->close();
 
 exit;
 
+sub daemonize {
+
+  if ( !umask(0) ) {
+    die "Could not umask(0)!\n";
+  }    
+
+  if ( !open(STDIN, "/dev/null") ) {
+    die "Could not detach from STDIN!\n";
+  }
+
+  if ( !open(STDOUT, ">>./live-compiler.out") ) {
+    die "Could not connect to STDOUT ($!)!\n";
+  }
+
+  if ( !open(STDERR, ">>./live-compiler.err") ) {
+    die "Could not connect to STDERR!\n";
+  }
+
+  my $pid = fork;
+  exit(0) if $pid; # Exit if $pid exist (parent)
+
+  # As child
+  setsid();
+  return $$;
+}
+
+sub sandbox {
+  my ( $command ) = @_;
+
+  #my $c = "firejail --noprofile --caps.drop=all --cpu=0 $command";
+  my $c = "firejail --noprofile --caps.drop=all --cpu=0 timeout 10 $command";
+  print "sandboxing for 10 seconds ( $c )\n";
+
+  my $output = `$c`;
+  #print "---SANDBOX-START------------------\n";
+  #print $output;
+  #print "---SANDBOX_STOP------------------\n";
+
+  $output =~ s/^.+$command *//g;
+  $output =~ s/Parent.+bye\.\.\..*\n//g;
+  $output =~ s/Parent.+\d{1,10}.*\n//g;
+
+  print "Length of the output: " . length($output) . "\n";
+
+  my $max = 1000;
+  if ( length($output) > $max ) {
+    $output = substr($output, 0, $max) . " \n...\n===TOO LONG===\n";
+  }
+
+  return $output;
+}
+
+sub getAnnotationsJava {
+  my ( $compilerOutput ) = @_;
+
+  my $first = 1;
+  my $error = { row => -1,
+		column => 0,
+		text => "",
+		type => "",
+	      };
+  my @as = ();
+
+  foreach my $line (split("\n", $compilerOutput)) {
+    chomp($line);
+
+    if ( $line =~ /:(\d+): (.+):(.*)$/ ) { # Found statement JAVAC
+      if ( !$first ) {
+	push(@as, $error);
+	$error = { row => ($1-1),
+		   column => 0,
+		   text => "$3",
+		   type => "$2",
+		 };
+      }
+
+      if ( $first ) {
+	$error->{row} = ($1-1);
+	$error->{text} = "$3";
+	$error->{type} = "$2";
+	$first = 0;
+      }
+
+    } else {
+      $error->{text} .= "\n$line";
+    }	
+  }
+
+  if ( $error->{row} != -1 ) {
+    push(@as, $error);
+  }
+
+  print Dumper(\@as);
+
+  return \@as;
+}
+
+sub getAnnotationsC {
+  my ( $compilerOutput ) = @_;
+
+  my $first = 1;
+  my $error = { row => -1,
+		column => 0,
+		text => "",
+		type => "",
+	      };
+  my @as = ();
+
+  foreach my $line (split("\n", $compilerOutput)) {
+    chomp($line);
+
+    if ( $line =~ /:(\d+):(\d+): (.+):(.*)$/ ) { # Found statement JAVAC
+      if ( !$first ) {
+	push(@as, $error);
+	$error = { row => ($1-1),
+		   column => ($2-1),
+		   text => "$4",
+		   type => "$3",
+		 };
+      }
+
+      if ( $first ) {
+	$error->{row} = ($1-1);
+	$error->{column} = ($2-1);
+	$error->{text} = "$4";
+	$error->{type} = "$3";
+	$first = 0;
+      }
+
+    } else {
+      $error->{text} .= "\n$line";
+    }	
+  }
+
+  if ( $error->{row} != -1 ) {
+    push(@as, $error);
+  }
+
+  print Dumper(\@as);
+
+  return \@as;
+}
+
 sub compile { 
   my ( $command, $compiler, $checker, $code ) = @_;
 
@@ -115,7 +280,6 @@ sub compile {
   }
 }
 
-
 sub compileJava8 { 
   my ($command, $compiler, $checker, $code) = @_;
   print "Compiler: Java 8\n";
@@ -136,28 +300,33 @@ sub compileJava8 {
       print FILE $code;
       close(FILE);
       
-      $version = `java -version 2>&1`;
-      $result  = `javac $codeFile 2>&1`;
+      $version    = `java -version 2>&1`;
+      $result     = `javac -Xlint:all $codeFile 2>&1`;
+      utf8::decode($result);
+
+      my $success = ($result ? 0 : 1);
 
       $result = { command => ($result ? "compile-error" : "compile-success"),
-		  status  => ($result ? 0 : 1),
-		  result  => ($result ? $result : "$version\nGeen fouten gevonden!\n"),
+		  status  => $success,
+		  annotations => getAnnotationsJava($result),
+		  result  => ($result ? $result : "$version"),
 		};
       
       # Sandboxing?? Or shutdown of the server?
-      if ( $command =~ /^execute/ ) {
+      if ( $success && $command =~ /^execute/ ) {
 	$result->{result} = "$version\n";
 	#$result->{execution} = "OUTPUT OF YOUR CODE:\n " . `java $className`;
-	$result->{execution} = "OUTPUT OF YOUR CODE:\n For security reasons, execution is not yet enabled in this version";
+	#$result->{execution} = "OUTPUT OF YOUR CODE:\n For security reasons, execution is not yet enabled in this version";
+	$result->{execution} = sandbox("java $className");
       }
       
       $result = encode_json($result);
       
       my $size = $socket->send($result);
       
-      print "Result:\n$result\n---------------\n";    
+      #print "Result:\n$result\n---------------\n";    
       
-      my $output = `rm -vf $codeFile $className.class`;
+      #my $output = `rm -vf $codeFile $className.class`;
 
       return 1;
       
@@ -191,23 +360,28 @@ sub compileCPP {
     close(FILE);
     
     my $version = `g++ --version 2>&1`;
-    my $result  = `g++ main.cpp -o main 2>&1`;
-    
+    my $result  = `g++ -Wall main.cpp -o main 2>&1`;
+    utf8::decode($result);
+
+    my $success = ($result ? 0 : 1);
+
     $result = { command => ($result ? "compile-error" : "compile-success"),
-		status  => ($result ? 0 : 1),
-		result  => ($result ? $result : "$version\nGeen fouten gevonden!\n"),
+		status  => $success,
+		annotations => getAnnotationsC($result),
+		result  => ($result ? $result : "$version\n"),
 	      };
 
-    if ( $command =~ /^execute/ ) {
-      $result->{execution} = "OUTPUT OF YOUR CODE:\n For security reasons, execution is not yet enabled in this version";
+    if ( $success && $command =~ /^execute/ ) {
+      #$result->{execution} = "OUTPUT OF YOUR CODE:\n For security reasons, execution is not yet enabled in this version";
       #$result->{execution} = `./main 2>&1`;
+      $result->{execution} = sandbox("./main");
     }
 
     $result = encode_json($result);
 
     my $size = $socket->send($result);
     
-    print "Result:\n$result\n---------------\n";    
+    #print "Result:\n$result\n---------------\n";    
 
     my $output = `rm -vf main.cpp main`;
 
@@ -230,23 +404,28 @@ sub compileC {
     close(FILE);
     
     my $version = `gcc --version 2>&1`;
-    my $result  = `gcc main.c -o main 2>&1`;
-    
+    my $result  = `gcc -Wall main.c -o main 2>&1`;
+    utf8::decode($result);
+
+    my $success = ($result ? 0 : 1);
+
     $result = { command => ($result ? "compile-error" : "compile-success"),
-		status  => ($result ? 0 : 1),
-		result  => ($result ? $result : "$version\nGeen fouten gevonden!\n"),
+		status  => $success,
+		annotations => getAnnotationsC($result),
+		result  => ($result ? $result : "$version\n"),
 	      };
 
-    if ( $command =~ /^execute/ ) {
-      $result->{execution} = "OUTPUT OF YOUR CODE:\n For security reasons, execution is not yet enabled in this version";
+    if ( $success && $command =~ /^execute/ ) {
+      #$result->{execution} = "OUTPUT OF YOUR CODE:\n For security reasons, execution is not yet enabled in this version";
       #$result->{execution} = `./main 2>&1`;
+      $result->{execution} = sandbox("./main");
     }
 
     $result = encode_json($result);
 
     my $size = $socket->send($result);
     
-    print "Result:\n$result\n---------------\n";    
+    #print "Result:\n$result\n---------------\n";    
 
     my $output = `rm -vf main.cpp main`;
 
