@@ -94,7 +94,7 @@ while ($connected) {
 	$socket->send(encode_json({
 				   command => "compile-error",
 				   status  => 0,
-				   result  => "Malformed request recieved (102)",
+				   result  => "Malformed request received (102)",
 				  }));
       } else {
 	compile($json->{command},
