@@ -1,3 +1,3 @@
 #!/bin/sh
 cd temp
-../live-compiler.pl 50
+../live-compiler.pl 10

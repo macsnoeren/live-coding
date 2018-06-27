@@ -194,14 +194,16 @@ function onWebsocketMessage ( evt ) {
 
     } else if ( data.command == "compile-success" ) {
       loadCompileResult(data.result + (data.execution ? data.execution : ""));
-      celebrateShow("Je hebt de opdracht goed volbracht door het programma foutloos te compileren!");
+      //celebrateShow("Je hebt de opdracht goed volbracht door het programma foutloos te compileren!");
+	  editor.getSession().setAnnotations(data.annotations);
 
     } else if ( data.command == "compile-status" ) {
       loadCompileResult(data.message);
 
     } else if ( data.command == "compile-error" ) {
       loadCompileResult(data.result);
-      
+      editor.getSession().setAnnotations(data.annotations);
+	  
       // TODO: change everything to indepent to language, so compile-java to compile. The language
       //       should be added to a different collumn
     } else if ( data.command == "compile" || data.command == "compile-error" || 
