@@ -124,8 +124,7 @@ function closeWebsocket () {
     token = "";
     
   } else {
-    console.log("Cannot close a socket that is not connected or is in a connecting state!");
-    alert("Connection Error\nPlease try again later.");
+    alert("The Live Coding application is not running, please contact an administrator or try again later.");
     window.location.href = (teacher ? "teacher.html" : "index.html");
   }
 }
