@@ -1,5 +1,12 @@
 #!/usr/bin/perl
 
+BEGIN { # Working directory is the application itself/temp
+  use File::Basename;
+  if ( !chdir( dirname($0) . "/temp" ) ) {
+    die "Could not change to the application directory '" . dirname($0) . "/temp' ($!)\n";
+  }
+}
+
 use strict;
 use warnings;
 
@@ -123,11 +130,11 @@ sub daemonize {
     die "Could not detach from STDIN!\n";
   }
 
-  if ( !open(STDOUT, ">>./live-compiler.out") ) {
+  if ( !open(STDOUT, ">>../../log/live-compiler.out") ) {
     die "Could not connect to STDOUT ($!)!\n";
   }
 
-  if ( !open(STDERR, ">>./live-compiler.err") ) {
+  if ( !open(STDERR, ">>../../log/live-compiler.err") ) {
     die "Could not connect to STDERR!\n";
   }
 

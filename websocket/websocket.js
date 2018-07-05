@@ -284,7 +284,7 @@ function deleteWorkspace (workspaceName) {
     
     for ( var i=0; i < ws.length; i++ ) {
       if ( ws[i] != workspaceName ) {
-	workspaceTmp[ws[i]] = workspaces[ws[i]];
+	workspacesTmp[ws[i]] = workspaces[ws[i]];
       }
     }
     
@@ -328,7 +328,7 @@ function deleteConnection (connection) {
 
 function checkElements ( data, elements ) {
   for ( var i=0; elements.length < i; i++ ) {
-    console.log("Check element '" + elements[i] + "': '" + data.indexOf(elements[i]) + "'");
+    //console.log("Check element '" + elements[i] + "': '" + data.indexOf(elements[i]) + "'");
     if ( data.indexOf(elements[i]) < 0 ) {
       return false;
     }
@@ -422,7 +422,7 @@ function addRequest ( connection, request ) {
   // Add the request to the queue!
   requests.push({ connection: connection, request: request });
 
-  connection.sendUTF(JSON.stringify({ command: "compile-status", status: true, message: "Your request has been recieved!" }));
+  connection.sendUTF(JSON.stringify({ command: "compile-status", status: true, message: "Your request has been received!" }));
 }
 
 function getRequest () {
@@ -439,14 +439,16 @@ function getRequest () {
 function processRequests () {
   for ( var i=0; i < clients.length; i++ ) {
     if ( clients[i].request == null ) {
-      console.log("Client " + i + " is waiting for compile requests");
+      //console.log("Client " + i + " is waiting for compile requests");
       var request = getRequest(); // { connection, request }
 
       if ( request != null ) {
-	console.log("Send the request to the worker!");
+	console.log("Send the request to the worker (" + i + ")!");
 	request.timestamp = (new Date()).getTime();
 	clients[i].request = request;
 	clients[i].socket.write(JSON.stringify(request.request));
+	console.log("Total requests in the queue: " + requests.length);
+	console.log("Total pending  in the queue: " + processing.length);
       }
     }
   }
@@ -456,8 +458,8 @@ function processRequests () {
 
   // Opschonen van requests die een worker hebben die kapot is gegaan.
 
-  console.log("Total requests in the queue: " + requests.length);
-  console.log("Total pending  in the queue: " + processing.length);
+  //console.log("Total requests in the queue: " + requests.length);
+  //console.log("Total pending  in the queue: " + processing.length);
 }
 
 function checkProcessingTasks () {
@@ -474,7 +476,7 @@ function sendAliveMessage () {
 
   for ( var i=0; i < clients.length; i++ ) {
     try { // Maybe a write method that creates a try catch
-      console.log("alive-message:" + timestamp);
+      //console.log("alive-message:" + timestamp);
       clients[i].socket.write("alive-message:" + timestamp + "\n");
     }
     catch (e) {
