@@ -412,20 +412,38 @@ var workers         = [];
 
 function addRequest ( connection, request ) {
   if ( clients.length <= 0 ) {
-    connection.sendUTF(JSON.stringify({ command: "compile-status", status: true, message: "No compilers are available to process your request!" }));
+    try {
+      connection.sendUTF(JSON.stringify({ command: "compile-status", status: true, message: "No compilers are available to process your request!" }));
+    }
+    catch (error) {
+      console.log("addRequests: senUTF socket error: " + error.message);
+    }
+
     return;
   }
 
   for ( var i=0; i < processing.length; i++ ) {
     if ( connection == processing[i].connection ) {
-      connection.sendUTF(JSON.stringify({ command: "compile-status", status: true, message: "Compiler is still busy with your request!" }));
+      try {
+	connection.sendUTF(JSON.stringify({ command: "compile-status", status: true, message: "Compiler is still busy with your request!" }));
+      }
+      catch (error) {
+	console.log("addRequests: senUTF socket error: " + error.message);
+      }
+
       return;
     }
   }
 
   for ( var i=0; i < requests.length; i++ ) {
     if ( connection == requests[i].connection ) {
-      connection.sendUTF(JSON.stringify({ command: "compile-status", status: true, message: "Your request is pending to be compiled by the compiler!" }));
+      try {
+	connection.sendUTF(JSON.stringify({ command: "compile-status", status: true, message: "Your request is pending to be compiled by the compiler!" }));
+      }
+      catch (error) {
+	console.log("addRequests: senUTF socket error: " + error.message);
+      }
+
       return;
     }
   }
@@ -433,7 +451,12 @@ function addRequest ( connection, request ) {
   // Add the request to the queue!
   requests.push({ connection: connection, request: request });
 
-  connection.sendUTF(JSON.stringify({ command: "compile-status", status: true, message: "Your request has been received!" }));
+  try {
+    connection.sendUTF(JSON.stringify({ command: "compile-status", status: true, message: "Your request has been received!" }));
+  }
+  catch (error) {
+    console.log("addRequests: senUTF socket error: " + error.message);
+  }
 }
 
 function getRequest () {
@@ -481,8 +504,13 @@ function processRequests () {
 function checkProcessingTasks () {
   for ( var i=0; i < processing.length; i++ ) {
     if ( processing[i].timestamp > (new Date()).getTime() + (10 * 1000) ) {
-      console.log("checkProcessingTasks: Timeout");
-      processing[i].connection.sendUTF(JSON.stringify({ command: "compile-error", status: true, message: "Your request taking too long, sorry!\n" }));
+      try {
+	console.log("checkProcessingTasks: Timeout");
+	processing[i].connection.sendUTF(JSON.stringify({ command: "compile-error", status: true, message: "Your request taking too long, sorry!\n" }));
+      }
+      catch (error) {
+	console.log("checkProcessingTasks: sendUTF socket error: " + error.message);
+      }
     }
   }  
 }
@@ -492,8 +520,13 @@ function sendAliveMessage () {
 
   for ( var i=0; i < clients.length; i++ ) {
     try { // Maybe a write method that creates a try catch
-      console.log("alive-message:" + timestamp);
-      clients[i].socket.write("alive-message:" + timestamp + "\n");
+      try {
+	//console.log("alive-message:" + timestamp);
+	clients[i].socket.write("alive-message:" + timestamp + "\n");
+      }
+      catch (error) {
+	console.log("sendAliveMessage: Writing socket error: " + error.message);
+      }
     }
     catch (e) {
       console.error(e);
@@ -507,7 +540,14 @@ function finishRequest ( socket, message ) {
     if ( clients[i].socket == socket && clients[i].request != null ) {
       var request = clients[i].request;
       clients[i].request = null;
-      request.connection.sendUTF(message);
+      
+      try {
+	request.connection.sendUTF(message);
+      }
+      catch (error) {
+	console.log("checkProcessingTasks: sendUTF socket error: " + error.message);
+      }
+
       deletePendingWorker(request);
       //clients[i].socket.write(message);
       // update the workspace and send all information to the workspace?!
