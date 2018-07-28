@@ -72,7 +72,12 @@ function onMessage ( connection, message ) {
       console.log("JSON ERROR: " + error.message);
     }
 
-    onCommand(connection, json);
+    try {
+      onCommand(connection, json);
+    }
+    catch (error) {
+      console.log("onCommand ERROR: " + error.message);
+    }
 
     print();
   }
@@ -476,18 +481,34 @@ function processRequests () {
       //console.log("Client " + i + " is waiting for compile requests");
       var request = getRequest(); // { connection, request }
 
+      console.log("DEBUG alivecounter: " + clients[i].alivecounter + "\n");
+
       if ( request != null ) {
 	console.log("processRequests: Send the request to worker '" + i + "'!");
 	request.timestamp = (new Date()).getTime();
 	clients[i].request = request;
+	clients[i].alivecounter = 0;
 	try {
 	  clients[i].socket.write(JSON.stringify(request.request));
 	}
 	catch (error) {
 	  console.log("processRequests: Writing socket error: " + error.message);
 	}
+
 	console.log("processRequests: Total requests in the queue: " + requests.length);
 	console.log("processRequests: Total pending  in the queue: " + processing.length);
+
+      } else { // Client is still waiting
+	if ( clients[i].alivecounter++ > 10 ) {
+	  try {
+	    var timestamp = (new Date()).getTime();
+	    clients[i].socket.write("alive-message:" + timestamp + "\n");
+	    clients[i].alivecounter = 0;
+	  }
+	  catch (error) {
+	    console.log("sendAliveMessage: Writing socket error: " + error.message);
+	  }
+	}
       }
     }
   }
@@ -564,10 +585,10 @@ function deletePendingWorker ( request ) {
   }
 }
 
-net.createServer( function (socket) {
+net.createServer( function (socket) { // Accepted client connection
   socket.name = socket.remoteAddress + ":" + socket.remotePort;
 
-  clients.push( { socket: socket, request: null } );
+  clients.push( { socket: socket, request: null, alivecounter: 0 } );
 
   //socket.write("Welcome " + socket.name + "\n");
 
@@ -579,7 +600,8 @@ net.createServer( function (socket) {
 
   // Remove the client from the list when it leaves
   socket.on('end', function () {
-    // clients.splice(clients.indexOf(socket), 1);
+	      // TODO! Maar wat??
+	      // clients.splice(clients.indexOf(socket), 1);
     // Acknowledge the request that was carried out 
     // delete the socket
   });
@@ -587,4 +609,4 @@ net.createServer( function (socket) {
 }).listen(portCompiler);
 
 setInterval(processRequests, 1000);
-setInterval(sendAliveMessage, 10000);
+//setInterval(sendAliveMessage, 10000);
