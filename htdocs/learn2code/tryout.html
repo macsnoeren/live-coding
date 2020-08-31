@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" type="text/css"> 
+  <link rel="stylesheet" href="confetti/confetti.css" type="text/css"> 
+  <link rel="stylesheet" href="style.css" type="text/css">   
+</head>
+
+<body>
+
+  <!-- Preloader -->
+  <div class="ws-loader">
+      <div class="ws-loader-container" id="ws-loader-container">
+	<h3><b>Laden van jouw live programmeeromgeving!</b></h3>
+	<div id="ws-loader-info"></div>
+	<div id="ws-loader-image"><img src="images/preloader.gif"/></div>
+	<div id="ws-loader-button" style="display: none;"><a onClick="window.location.href='index.html'" class="btn btn-primary">OKAY</a></div>
+      </div>
+  </div>
+  <!-- End Preloader -->
+    
+  <!-- Navigation bar at the top -->
+  <div class="container py-2 border-bottom">
+    <div class="row">
+        <div class="col-lg-8">
+          <div class="row">
+            <div class="col-lg-3">
+	      <!--<img class="img d-block" src="images/av-logo.png">-->
+	      <img class="img d-block" width="200px" style="margin-bottom: -20px;" src="../images/CodingskillsLearn2Code.png">
+            </div>
+            <div class="col-lg">
+	      <div id="workspace-info" class="text-info d-none">workspaceinfo</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg text-right">
+          <ul class="nav nav-pills justify-content-end">
+            <li class="nav-item">
+              <a class="nav-link" href="#" onClick="logout();">Logout</a>
+            </li>
+          </ul>	  
+        </div>
+    </div>
+  </div>
+  <!-- End navigation bar -->
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-1"></div>
+      <div class="col-lg py-2">
+        <div class="btn-group">
+          <a onClick="compileCode(event);" class="btn btn-primary">Compile</a>
+          <a onClick="executeCode(event);" class="btn btn-primary">Execute</a>
+          <a onClick="consoleCode(event);" class="btn btn-primary">Console</a>
+          <select class="btn btn-primary" id="compiler" onChange="onChangeCompiler(this.value);">
+            <option value="java-8" selected>Java 8</option>
+            <option value="c" disabled>C</option>
+            <option value="cpp" disabled>C++</option>
+          </select>
+        </div>
+        <div id="status-bar" class="text-primary border my-2 px-2"></div>
+      </div>
+      <div class="col-lg"></div>
+      <div class="col-lg-1"></div>
+    </div>
+    <div class="row">
+      <div class="col-lg-1"></div>
+      <div class="col-lg">
+        <div id="editor"></div>
+      </div>
+      <div class="col-lg">
+        <div class="bg-dark border border-dark py-2 px-2 text-white" id="output"><i>Hier komt het resultaat van de compiler...</i></div>
+        <div class="input-group input-group-sm mb-3 mh-100">
+          <div class="input-group-prepend">
+            <span class="input-group-text bg-dark text-white" id="cmdAddon">#</span>
+          </div>
+          <input id="commandline" type="text" class="form-control bg-dark text-white" placeholder="Commandline" aria-label="Username" aria-describedby="cmdAddon">
+        </div>
+      </div>
+      <div class="col-lg-1"></div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="celebrationModal" tabindex="-1" role="dialog" aria-labelledby="celebrationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="celebrationModalLabel">Goed gedaan!</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-3">
+              <img src="images/check.png" width="50px"/>
+            </div>
+            <div class="col-md-6" id="celebrationtext">
+              Je hebt de opdracht goed volbracht!
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <canvas class="" id="confetti" width="1" height="1"></canvas>
+
+  <script src="socket.io/socket.io.js"></script>
+  <script src="js/jquery.min.js" type="text/javascript"></script>
+  <script src="bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+  <script src="ace/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script src="confetti/confetti.js" type="text/javascript"></script>
+  <script src="js/workspace.js" type="text/javascript"></script>
+
+  <script>
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/cobalt");
+    editor.session.setMode("ace/mode/c_cpp");
+    editor.setShowPrintMargin(false);
+ 
+    $("#commandline").keyup ( 
+      function(event) {
+	if ( event.keyCode === 13 ) {
+	  websocketSend( $('#commandline').val() );
+	  $("#commandline").val('');
+	}
+      }
+    );
+
+	var code = "public class YourFirstJavaApplication {\n" +
+	           "\n" +
+			   "	public static void main (String[] args) {" +
+			   "\n" +
+			   "		// Schrijf hier jouw code!" +
+			   "\n" +
+			   "	}\n" +
+			   "}\n\n";
+	
+    loadEditorCode(code);
+
+	// System.out.println ("Hello World!");
+
+   /* celebration */
+   var confetti = new confetti.Context('confetti');
+   $('#confetti').hide();
+
+  </script>
+
+</body>
+
+</html>

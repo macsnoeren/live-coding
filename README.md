@@ -1,6 +1,11 @@
 # Live Coding
 
-The main purpose of Live Coding is to improve the programming education of starting students.
+Live coding ... why? For us teachers who would like to teach coding in an interactive way
+during the class. The coding of the students can be viewed and discussed to increase the
+learning of the total group. Within Avans Hogeschool, this software has been developed and
+used already for three years. Each year the software is step-by-step improved together with
+students and teachers that are involved. 
+
 Teachers use the tool to interactively learn the basic skills to their students. Students 
 are able to code along the course. The teacher is able to see the progress in real-time. Using
 this method provides a good measure of the possible pace and how well your students are doing.
@@ -9,13 +14,11 @@ Going into detail of the current student challenge's creates a steep learning en
 ## Beta version
 
 This is application is not yet finished! Use at your own risk. We use it to experiment with
-new didactical concepts within our education.
+new didactical concepts within our education concepts. Therefore, it is in a beta state.
 
 ## Installation
 
-Several third-party software, applications and libraries are used to run the Live Coding
-environment. Before running the environment, it is required to install these additional
-software packages.
+<todo>
 
 ## Usage
 

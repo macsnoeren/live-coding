@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+	
+  "webServerPort": 8080,
+  "webDir"       : "/home/maurice/websites/apps/learn2code/htdocs",
+
+  "visualHost"   : '92.222.168.248',
+  "visualPort"   : 15000
+
+  "compilerDir"     : "/tmp/codingskills",
+  "firejailProfile" : "/home/maurice/websites/apps/learn2code/codingskills.profile.vmacman"
+}

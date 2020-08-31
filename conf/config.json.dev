@@ -1,0 +1,8 @@
+{
+  "version": "0.0.1",
+	
+  "webServerPort": 8080,
+
+  "compilerDir"     : "compiler",
+  "firejailProfile" : "config/codingskills.profile.neo"
+}

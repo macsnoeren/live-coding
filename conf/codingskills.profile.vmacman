@@ -1,0 +1,144 @@
+########################################
+# Firejail profile for codingskills.nl #
+# Maurice Snoeren - 21-09-2019         #
+########################################
+
+hostname codingskills.nl
+
+noroot
+net none
+#x11 none 
+nonewprivs
+netfilter
+protocol unix,inet,inet6
+seccomp
+caps.drop all 
+cpu 0 
+
+blacklist /tmp/ssh-*
+blacklist /etc
+blacklist /home
+blacklist /sbin
+blacklist /dev
+blacklist /lost+found  
+blacklist /media  
+blacklist /mnt
+blacklist /opt
+blacklist /root  
+blacklist /srv
+blacklist /sys
+blacklist /var
+
+#blacklist /bin
+#blacklist /lib
+#blacklist /lib64
+#blacklist /proc  
+#blacklist /run
+#blacklist /usr
+
+#whitelist /tmp/codingskills
+
+#blacklist /bin/bash
+blacklist /bin/bunzip2
+blacklist /bin/bzcat
+blacklist /bin/bzdiff
+blacklist /bin/bzgrep
+blacklist /bin/bzexe
+blacklist /bin/bzip*
+blacklist /bin/bzmore
+blacklist /bin/cat
+blacklist /bin/chacl
+blacklist /bin/chgrp
+blacklist /bin/chmod
+blacklist /bin/chown
+blacklist /bin/cp
+blacklist /bin/cpio
+blacklist /bin/dash
+blacklist /bin/date
+blacklist /bin/dd
+blacklist /bin/df
+blacklist /bin/dir
+blacklist /bin/dmesg
+blacklist /bin/echo
+blacklist /bin/ed
+blacklist /bin/egrep
+blacklist /bin/false
+blacklist /bin/fgrep
+blacklist /bin/findmnt
+blacklist /bin/fuser
+blacklist /bin/getfacl
+blacklist /bin/grep
+blacklist /bin/gunzip
+blacklist /bin/gzexe
+blacklist /bin/gzip
+blacklist /bin/ip
+blacklist /bin/journalctl
+blacklist /bin/kill
+blacklist /bin/kmod
+blacklist /bin/less
+blacklist /bin/lessecho
+blacklist /bin/lesspipe
+blacklist /bin/lesskey
+blacklist /bin/lesspipe
+blacklist /bin/ln
+blacklist /bin/login
+blacklist /bin/loginctl
+blacklist /bin/ls
+blacklist /bin/lsblk
+blacklist /bin/kmod
+blacklist /bin/machinectl
+blacklist /bin/mkdir
+blacklist /bin/mknod
+blacklist /bin/mktemp
+blacklist /bin/more
+blacklist /bin/mount
+blacklist /bin/mountpoint
+blacklist mt*
+blacklist /bin/mv
+blacklist nc*
+blacklist netcat*
+blacklist /bin/netstat
+blacklist /bin/killall*
+blacklist /bin/ping
+blacklist /bin/ping6
+blacklist /bin/ps
+blacklist /bin/pwd
+blacklist /bin/readlink
+blacklist /bin/red
+blacklist /bin/rm
+blacklist /bin/rmdir
+blacklist /bin/run-parts
+blacklist /bin/sed
+blacklist /bin/setfacl
+blacklist /bin/dash
+blacklist /bin/dash
+blacklist /bin/sleep
+blacklist /bin/ss
+blacklist /bin/stty
+blacklist /bin/su
+blacklist /bin/sync
+blacklist /bin/system*
+blacklist /bin/tailf
+blacklist /bin/tar
+blacklist /bin/tempfile
+blacklist /bin/touch
+blacklist /bin/true
+blacklist /bin/udevadm
+blacklist /bin/umount
+#blacklist /bin/uname
+blacklist /bin/uncompress
+blacklist /bin/vdir
+blacklist /bin/wdctl
+blacklist /bin/which
+#blacklist /bin/hostname
+blacklist /bin/zcat
+blacklist /bin/zcmp
+blacklist /bin/zdiff
+blacklist /bin/zegrep
+blacklist /bin/zfgrep
+blacklist /bin/zforce
+blacklist /bin/zgrep
+blacklist /bin/zless
+blacklist /bin/zmore
+blacklist /bin/znew
+
