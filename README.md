@@ -30,8 +30,8 @@ _**What are the most (evidence based) effective education strategies for the edu
 Currently, we have defined the following sub-questions:
 1. How can we get motivated students?
 2. What are effective education strategies to learn coding skills.
-3. How can digital tools support these effective education strategies to learn coding skills?
-4. What kind of digital tools can be developed to support the teacher and students?
+3. How can digital tool support these effective education strategies to learn coding skills?
+4. What kind of digital tools can be developed to support the teacher and students to develop their coding skills?
 
 ### Goal
 The goal is to provide an Intenet based tool, that can be used by lecturers to teach student software skills, to significantly improve the learning performance of the students compared to classical education.  
@@ -90,6 +90,9 @@ Hattie shows in his research that feedback has the most influence on the learnin
 3. Where to next?
 
 In order to give good feedback, the teacher needs to be prepared very well. Starting learning activities for students require clear lesson/learning goals, importance of the lesson, link with the profesional practice, clear expectations, relevant challenging assignments, good relationship with the student, good class management, clear structure and promote autonomous motivation. When this is in place, the teacher is able to give good feedback AND the student is able to recieve the feedback by seeing how it relates to the context.
+
+## Conclusion
+A lot to digest. We do have learned that the teacher can do a lot. Within the context of the development of coding skills, we should focus on feedback. No rewards must be giving in terms of nice green flags or money! Rewards could be given in the form of the progress of the student. Giving ansers to the questions of good feedback: "where am I going", "how am I going" and "where to next". Furthermore, it is required to have clear learning goals, showing the importance of the learning activity, give the link with the professional practice, giving clear expectations, give relevant challenging assignment and promote autonomous motivation. 
 
 # 1. What are effective education strategies to learn coding skills.
 The teacher plays an important role in the learning performance of the students. That means that any digital tool is a tool for the teacher to support this learing performance. Within this section we are going to explore what effective education strategies are to learn to code.
