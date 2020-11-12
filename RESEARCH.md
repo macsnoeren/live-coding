@@ -83,68 +83,31 @@ In order to give good feedback, the teacher needs to be prepared very well. Star
 A lot to digest. Within this section we try to answer the question "How can we get motivated students?". We do have learned that the teacher can do a lot. Within the context of the development of coding skills, we should focus on feedback. No rewards must be giving in terms of nice green flags or money! Rewards could be given in the form of the progress of the student. Giving ansers to the questions of good feedback: "where am I going", "how am I going" and "where to next". Furthermore, it is required to have clear learning goals, showing the importance of the learning activity, give the link with the professional practice, giving clear expectations, give relevant challenging assignment and promote autonomous motivation. 
 
 # 2. What are effective education strategies to learn coding skills.
-The teacher plays an important role in the learning performance of the students. That means that any digital tool is a tool for the teacher to support this learing performance. Within this section we are going to explore what effective education strategies are to learn to code.
+The teacher plays an important role in the learning performance of the students. That means that any digital tool is a tool for the teacher to support this learing performance. Within this section we are going to explore what effective education strategies are to learn to code. It is generally known that learning skills requires practice. This is also found by a desik research on the Internet. To become a expert programmer you need to program daily for five years (Forest, 2019). Forest also tells that focus needs to be on the practice and litte on the theory. Advicing a 80/20 rule of thumb. When concepts are studied, you need to put it into practice multiple times. Project based learning, is about solving problems of a relevant project to learn coding. Programming is not about learning a language, but about solving problems (Upadhyay, 2020). Also Upadhyay advices to learn concepts and theory and put it in practice afterwards. Project based approach is also discussed as a good approach to put the learned fundamentels into practice. The rule of thumb here is two hours study and one hour practice. It not fully in line with the "practice ... practice ... practice". To become a good programmer, it is required to learn to brak down complex problems into smaller pieces (Pronschinske, 2020). Learning coding is really hard and teaching is even harder. Most teachers come from a software background (Harris, 2019).
 
-## How do we learn coding skills the best?
+## Conclusion
+Effective learning strategies is to learn the concepts and theory and immediatly start practicing. A rule of thump could be around 30/70 percent. The teacher could teach a concept and after that give the studentsn some examples to explore the concept in practice. Based on how students are performing, it is possible to give good feedback to show the students where they are in their learning process.
+
+# 3. How can digital tool support these effective education strategies to learn coding skills?
 
 
-Practice (Forest, 2019) 
-* If you want to become an expert programmer, be ready to spend at least 5 years of programming daily.
-* Programming is one of these skills where you will need to practice a lot more than focus on the theory. I then recommend you spend at least 80% of your time writing code and 20% learning the theory. 
-* For every minute you spend trying to understand the concepts, you should spend about 5x more time on putting it into practice. 
-* The golden rule is spaced learning and spaced repetition. This means you should spread out your learning in short bursts to let your brain time to assimilate the concepts. And you should recall what you learned regularly enough.
-* Program every day
-* How can I become a good programmer?
-    * Write clean code like a champ
-    * Abstraction and encapsulation. Hide implementation details.
-    * Name your boolean conditions.
-    * Name your actions
-    * The rule of 7 (lines of code per function)
-    * Maintainability
 
-(Upadhyay, 2020):
-* follow the project-based learning approach. Build as many projects as you can to strengthen your problem-solving skills in programming. Remember that programming is not about learning a language (Python, C++, Java, etc.), it is the ability to solve the problems. Also in a job, an employer needs a problem solver so, during interviews, your problem-solving skill comes first before anything else.
+# 4. What kind of digital tools can be developed to support the teacher and students to develop their coding skills?
+
+
+# Conclusion
+
 
 ## Sources
 * Dweck, C. (2006). Mindset: The new psychology of success. New York: Random House.
-* Onderwijsinspectie. (2015). Motivatie bij leerlingen en studenten. Den Haag: Inspectie van het Onderwijs.
-* Pink, D. H. (2010). Drive, de verassende waarheid over wat ons motiveert. Amsterdam/Antwerpen: Business Contact.
-* Ryan, R. M., & Deci, E. L. (2000). Self-Determination Theory and the Facilitation of Intrinsic Motivation, Social Development, and Well-Being. Americal Psychologist.
+* Forest, D. (2019), A Beginner’s Guide on How to Improve Your Programming Skills, Medium, https://medium.com/skilluped/a-beginners-guide-on-how-to-improve-your-programming-skills-769b92fef2f2
+* Harris, S. (2019), How to Teach Code, Towards Data Science, https://towardsdatascience.com/how-to-teach-code-a4d8ee29e14e.
+* Hattie, J., & Timperley, H. (2007). The Power of Feedback. Review of educational research, 81-112.
 * Joosten, A., & van Laar, S. (2015). Didactische tips voor docenten. www.dedocentenacademie.nl.
-* Hattie, J., & Timperley, H. (2007). The Power of Feedback. Review of educational research, 81-112.* Marzano, R., & Miedema, W. (2013). Lerin in 5 dimensies. Assen: Van Gorcum.
-* D. Forest, A Beginner’s Guide on How to Improve Your Programming Skills, Medium, 2019, https://medium.com/skilluped/a-beginners-guide-on-how-to-improve-your-programming-skills-769b92fef2f2
-* A. Upadhyay, How to Learn Programming?, GeeksforGeeks, 2020, https://www.geeksforgeeks.org/how-to-learn-programming/
-* Adapt a good learning strategy. For example: instead of consuming all the theories first and then jumping to making the programs follow a 2:1 ratio between conceptual learning and active learning. It means after every two hours of conceptual learning spend an hour in practical exposure or active learning.
-* Make a small application or project based on fundamentals you have learned. For example, make a calculator or something that is interesting for you. Learn how to google when you get stuck somewhere.
-* Practice, practice and practice enough. Get your hands dirty in programming and if it’s possible participate in competitive programming on different websites. You will gain confidence and you will become much better in problem-solving.
-
-https://techbeacon.com/app-dev-testing/50-tips-improving-your-software-development-game:
-* Plan your code away from the computer. It will help you build a clear mental model before you start. You use the same strategy in writing, because if you don’t have an outline, your content becomes a messy stream of consciousness.
-* The best programmers can take a complex problem, break it down into smaller pieces, solve each of those pieces, and then put everything back together to solve the initial problem.
-
-https://www.opencolleges.edu.au/informed/features/coding-education-important-implemented/:
-* oding bootcamps have gained popularity over the past four or five years as a way to help students from all backgrounds learn coding and pursue careers in software development. Most programs last about three months on average and can be full-time, part-time, online or in-person.
-
-John Hattie:
-* "Pas als je als leerkracht heel goed weet wat een leerling wel en niet weet, kun je hem effectief nieuwe dingen leren. Als je als het ware door de ogen van een leerling kijkt en de leerling duidelijk maakt wat het doel is waar hij naartoe werkt, kun je hem de juiste opdrachten en feedback geven om effectief iets nieuws te leren."
-* Hoe doe je dat in de les?
-"Het betekent dat je als leraar heel goed moet luisteren, en veel ruimte moet creëren voor groepsdiscussies. Niet omdat wat leerlingen te melden hebben per definitie super-interessant is, maar omdat je er dan achter komt of wat jij als leerkracht wilde overbrengen ook daadwerkelijk is geland, of er vooruitgang is geboekt.
-* "Dat is heel lastig voor leraren, zij hebben vaak de neiging om in te grijpen en de discussie de goede kant op te sturen. Maar als je je mond houdt, hoor je de invloed van je onderwijs. Goede leraren zijn daar voortdurend naar op zoek."
-* 
-
-https://towardsdatascience.com/how-to-teach-code-a4d8ee29e14e:
-* Learning to code is really hard and teaching code is even harder. There is no bootcamp in ‘How to Teach Code’. Most teachers do not have any formal training in education and come from a software background.
-* 
-
-<todo>
-
-## Security considerations
-
-While the environment is able to dispatch multiple connections and accept multiple compiler
-servers to perform the compiling tasks, your systems are at risk. Security needs to be taken
-into account running these services. show the importance of the learning activities to the students. Some of the ssecurity recommendations are taken into 
-account within the software:
-1. The compiling server software uses a time limited sandbox to execute the compiled source code
-2. The compiling server should run in a Virtual Machine, so it is easy to recover them if broken
-3. ... <definitely not complete>
-
+* Marzano, R., & Miedema, W. (2013). Lerin in 5 dimensies. Assen: Van 
+* Onderwijsinspectie. (2015). Motivatie bij leerlingen en studenten. Den Haag: Inspectie van het Onderwijs.
+Gorcum.
+* Pink, D. H. (2010). Drive, de verassende waarheid over wat ons motiveert. Amsterdam/Antwerpen: Business Contact.
+* Pronschinske, M. (2020), 50 tips for improving your software development game, TechBeacon, https://techbeacon.com/app-dev-testing/50-tips-improving-your-software-development-game
+* Ryan, R. M., & Deci, E. L. (2000). Self-Determination Theory and the Facilitation of Intrinsic Motivation, Social Development, and Well-Being. Americal Psychologist.
+* Upadhyay, A. (2020), How to Learn Programming?, GeeksforGeeks, https://www.geeksforgeeks.org/how-to-learn-programming/
