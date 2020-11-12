@@ -1,5 +1,5 @@
 # Research to effective education strategies for teaching coding skills
-_Maurice Snoeren_
+_Maurice Snoeren_<br>
 This document describes the research that is done to get insights to improve our education of software coding.
 
 ## Live coding approach
