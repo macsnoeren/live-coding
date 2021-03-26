@@ -23,7 +23,7 @@
     "fs": "0.0.1-security",
     "net": "^1.0.2",
     "sha1": "^1.1.1",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.4.0",
     "socket.io-client": "^2.3.0",
     "tree-kill": "^1.2.2",
     "utf8": "^3.0.0"
