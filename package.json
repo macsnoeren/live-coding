@@ -1,0 +1,31 @@
+{
+  "name": "learn2code",
+  "version": "0.0.1",
+  "description": "Live Coding Compiler contains the package that is used to create the live coding compiler to connect to the Live Coding back-end application.",
+  "main": "learn2code.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/macsnoeren/learn2code.git"
+  },
+  "author": "Maurice Snoeren <maurice@jmnl.nl> (https://www.jmnl.nl)",
+  "license": "Copyright 2018 JMNL Innovation",
+  "bugs": {
+    "url": "https://github.com/macsnoeren/learn2code/issues"
+  },
+  "homepage": "https://github.com/macsnoeren/learn2code#readme",
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "dgram": "^1.0.1",
+    "express": "^4.17.1",
+    "fs": "0.0.1-security",
+    "net": "^1.0.2",
+    "sha1": "^1.1.1",
+    "socket.io": "^2.3.0",
+    "socket.io-client": "^2.3.0",
+    "tree-kill": "^1.2.2",
+    "utf8": "^3.0.0"
+  }
+}

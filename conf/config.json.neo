@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+	
+  "webServerPort": 8080,
+  "webDir"       : "/home/livecoding/learn2code/htdocs",
+
+  "visualHost"   : '51.254.102.189',
+  "visualPort"   : 15000
+
+  "compilerDir"     : "/home/livecoding/compiler",
+  "firejailProfile" : "/home/livecoding/learn2code/codingskills.profile.neo"
+}

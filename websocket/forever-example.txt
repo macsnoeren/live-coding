@@ -1,1 +1,0 @@
-forever start -a -l /home/maurice/websites/apps/live-coding/log/forever.log -o /home/maurice/websites/apps/live-coding/log/websocket.log -e /home/maurice/websites/apps/live-coding/log/websocket.err ./websocket.js 
