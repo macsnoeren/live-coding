@@ -44,7 +44,17 @@ socket.on("stdout", (data) => {
     console.log("stdout");
     console.log(data);
 });
-  
+
+socket.on("stderr", (data) => {
+    console.log("stderr");
+    console.log(data);
+});
+
+socket.on("message", (data) => {
+    console.log("message");
+    console.log(data);
+});
+
 socket.on("disconnect", () => {
     console.log(socket.id);
 });

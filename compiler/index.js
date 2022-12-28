@@ -7,13 +7,15 @@ const io = require('socket.io')();
 const fs = require('fs');
 
 var _interface = {};
+var _status    = {};
 
 io.on('connection', client => {
     client.on('create',  createClientEnvironment  );
     client.on('file',    eventFile                );
     client.on('compile', compile                  );
-    client.on('run',     (data) => { run(client.id, data); } );
+    client.on('run',     (data) => { run(client, data); } );
     client.on('stdin',   stdin                    );
+    client.on('status',  status                   );
     client.on('cleanup', cleanupClientEnvironment );
     //client.on('disconnect', (reason) => { cleanupClientEnvironment(client.id) });
 });
@@ -106,6 +108,7 @@ function eventFile( data ) {
 
 function createClientEnvironment (data) {
     if ( "clientId" in data && validClientId(data.clientId) ) {
+	io.emit("message", { clientId: data.clientId, message: "Create environment" });
 	console.log("Setting up client environment for client: " + data.clientId);
 	if ( !fs.existsSync("clientenvironments/" + data.clientId)) {
             fs.mkdirSync("clientenvironments/" + data.clientId);
@@ -132,9 +135,16 @@ class ` + data.project + ` {
 `});
 	    }*/
 	}
+
+	if ( !(data.clientId in _status) ) {
+	    _status[data.clientId] = "idle"; 
+	}
 	
+	io.emit("message", { clientId: data.clientId, message: "Ready creating environment" });
+
     } else {
 	console.log("createClientEnvironment: No clientId given.");
+	io.emit("message", { clientId: data.clientId, message: "Error creating environment" });
     }
 }
 
@@ -143,6 +153,9 @@ function cleanupClientEnvironment ( data ) {
 	console.log("Cleaning up client environment for client: " + data.clientId);
 	if ( fs.existsSync("clientenvironments/" + data.clientId)) {
             fs.rmSync("clientenvironments/" + data.clientId, { recursive: true, force: true });
+	    if ( data.clientId in _status ) {
+		delete _status[data.clientId];
+	    }
 	}
     } else {
 	console.log("createClientEnvironment: No clientId given.");
@@ -150,52 +163,41 @@ function cleanupClientEnvironment ( data ) {
 }
 
 function compile ( data ) {
-    if ( "clientId" in data ) {
+    if ( "clientId" in data && _status[data.clientId] == "idle" ) {
+	io.emit("message", { clientId: data.clientId, message: "Starting compiler" });
+	_status[data.clientId] = "compiling";
 	exec('java -version', [], (error, stdout, stderr) => {
 	    var version = stderr;
 	    console.log("version: " + version);
 
 	    exec('cd clientenvironments/' + data.clientId + '; find -name "*.java" > sources.txt; javac -Xlint:all -classpath libs/* -d target ' + "@sources.txt", [], (error, stdout, stderr) => {
 		if (error) { // Compilation failed
+		    io.emit("message", { clientId: data.clientId, message: "Compile errors" });
 		    var annotations = getAnnotations(stderr.split('\n')); // TODO: Should be changed due to multiple files that are compiled.
 		    console.log(annotations);
 		    output = stderr;
 		    console.log(output);
+		    _status[data.clientId] = "idle";
 		    
 		} else { // Compilation success
+		    io.emit("message", { clientId: data.clientId, message: "Compile success" });
 		    console.log("Compilation success!");
+		    _status[data.clientId] = "idle";
 		}
 	    });
 	});	
     } else {
 	console.log("compile: No clientId given.");
+	io.emit("message", { clientId: data.clientId, message: "Compile call error" });
     }	
 }
 	
-function runOld ( data ) {
-    if ( "clientId" in data ) {
-	console.log("start");
-	exec('cd clientenvironments/' + data.clientId + "/target; java " + "MyJavaApplication", [], (error, stdout, stderr) => {
-	    console.log(stdout);
-	    //console.log(stderr);
-	    if (error) { // Compilation failed
-		output = stderr;
-		console.log(output);
-		
-	    } else { // Compilation success
-		console.log(stdout);
-		console.log(stderr);
-	    }
-	});
-    } else {
-	console.log("compile: No clientId given.");
-    }	
-}
-
 // Send stdin to a running application
 function stdin ( data ) {
     if ( "clientId" in data && "stdin" in data ) {
+	io.emit("message", { clientId: data.clientId, message: "Recived stdin string" });
 	if ( data.clientId in _interface ) {
+	    io.emit("message", { clientId: data.clientId, message: "Send stdin string" });
 	    console.log("stdin: " + data.clientId + ": " + data.stdin);
 	    var app = _interface[data.clientId];
 	    app.stdin.write(data.stdin);
@@ -206,15 +208,25 @@ function stdin ( data ) {
     }
 }
 
-function run ( clientId, data ) {
+function status ( data ) {
     if ( "clientId" in data ) {
-	console.log("start");
-	console.log(data.clientId);
+	io.emit("status", { clientId: data.clientId, status: _status });
+    }
+}
+
+function run ( client, data ) {
+    if ( "clientId" in data && _status[data.clientId] == "idle" ) {
+	var _id = data.clientId;
+	io.emit("message", { clientId: _id, message: "Start to run the application" });
+	_status[data.clientId] = "running";
+	
 	try {
 	    process.chdir("clientenvironments/" + data.clientId + "/target");
 	    
 	} catch (err) {
 	    console.log(err);
+	    _status[data.clientId] = "idle";
+	    return;
 	}
 	
 	try {	    
@@ -222,28 +234,32 @@ function run ( clientId, data ) {
 	    app.stdin.setEncoding('utf-8');
 
 	    app.on('error', (error) => {
+		io.emit("message", { clientId: _id, message: "Error when running the application" });
 		console.log("error");
 		console.log(error);
+		_status[data.clientId] = "idle";
 	    });
-
-	    var _id = data.clientId;
 	    
 	    // TODO: Vulnerable to large inputs, iresponsive webbrowser
 	    app.stdout.on('data', (data) => {
+		io.emit("message", { clientId: _id, message: "Got stdout string from application" });
 		var output = `${data}`;
 		if ( !output.match(/\u0007|Parent pid/) ) {
-		    io.to(clientId).emit("stdout", { clientId: _id, output: output });
+		    io.to(client.id).emit("stdout", { clientId: _id, output: output });
 		}
 	    });
 	    
 	    app.stderr.on('data', (data) => {
+		io.emit("message", { clientId: _id, message: "Got stderr string from application" });
 		var output = `${data}`;
-		io.to(clientId).emit("stderr", { clientId: _id, output: output });
+		io.to(client.id).emit("stderr", { clientId: _id, output: output });
 	    });
 	    
 	    app.on('close', (code) => {
+		io.emit("message", { clientId: _id, message: "Got close messahe from application" });
 		console.log("close recieved");
 		if ( data.clientId in _interface ) {
+		    _status[data.clientId] = "idle";
 		    delete _interface[data.clientId];
 		}
 	    });
@@ -251,10 +267,13 @@ function run ( clientId, data ) {
 	    _interface[data.clientId] = app;
 
 	} catch (error) {
+	    io.emit("message", { clientId: data.clientId, message: "Error during running the application" });
 	    console.log('ERROR: ' + error);
+	    _status[data.clientId] = "idle";
 	}
 	
     } else {
+	io.emit("message", { clientId: data.clientId, message: "Run call error" });
 	console.log("compile: No clientId given.");
     }	
 }
