@@ -16,11 +16,11 @@ socket.on("connect", () => {
 
     // For automatic testing
     create("client-id-123", "MyJavaApplication");
-    sendFile("client-id-123", "test/test/test.java", `
+    sendFile("client-id-123", "myjavaapplication.java", `
 import static java.lang.System.*;
 import java.util.Scanner;
 
-class Test {
+class MyJavaApplication {
     public static void main(String[] args) {
         System.out.println("Hello, World!"); 
         Scanner scanner = new Scanner(System.in);
@@ -38,6 +38,11 @@ class Test {
     setTimeout(() => {stdin("client-id-123", "test\n");}, 10000);    
     setTimeout(() => {stdin("client-id-123", "test\n");}, 12000);    
     //cleanup("client-id-123");
+});
+
+socket.on("stdout", (data) => {
+    console.log("stdout");
+    console.log(data);
 });
   
 socket.on("disconnect", () => {

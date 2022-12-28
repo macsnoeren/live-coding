@@ -12,7 +12,7 @@ io.on('connection', client => {
     client.on('create',  createClientEnvironment  );
     client.on('file',    eventFile                );
     client.on('compile', compile                  );
-    client.on('run',     run                      );
+    client.on('run',     (data) => { run(client.id, data); } );
     client.on('stdin',   stdin                    );
     client.on('cleanup', cleanupClientEnvironment );
     //client.on('disconnect', (reason) => { cleanupClientEnvironment(client.id) });
@@ -114,6 +114,7 @@ function createClientEnvironment (data) {
 	    fs.mkdirSync("clientenvironments/" + data.clientId + "/target");
 	    fs.mkdirSync("clientenvironments/" + data.clientId + "/src");
 
+	    /*
 	    if ( "project" in data ) {
 		eventFile({clientId: data.clientId, filename: data.project + ".java", contents: `
 import static java.lang.System.*;
@@ -129,7 +130,7 @@ class ` + data.project + ` {
     }
 }
 `});
-	    }
+	    }*/
 	}
 	
     } else {
@@ -205,9 +206,10 @@ function stdin ( data ) {
     }
 }
 
-function run ( data ) {
+function run ( clientId, data ) {
     if ( "clientId" in data ) {
 	console.log("start");
+	console.log(data.clientId);
 	try {
 	    process.chdir("clientenvironments/" + data.clientId + "/target");
 	    
@@ -215,30 +217,28 @@ function run ( data ) {
 	    console.log(err);
 	}
 	
-	try {
-	    var app = spawn("/usr/bin/java", ["MyJavaApplication"]);
+	try {	    
+	    var app = spawn("timeout", ["60", "/usr/bin/java", "-Xmx32m", "-Xmx32m", "MyJavaApplication"]);
 	    app.stdin.setEncoding('utf-8');
 
 	    app.on('error', (error) => {
 		console.log("error");
 		console.log(error);
 	    });
+
+	    var _id = data.clientId;
 	    
 	    // TODO: Vulnerable to large inputs, iresponsive webbrowser
 	    app.stdout.on('data', (data) => {
 		var output = `${data}`;
 		if ( !output.match(/\u0007|Parent pid/) ) {
-		    console.log("console output stdout....");
-		    console.log(output);
-		    console.log("console output....");
+		    io.to(clientId).emit("stdout", { clientId: _id, output: output });
 		}
 	    });
 	    
 	    app.stderr.on('data', (data) => {
 		var output = `${data}`;
-		console.log("console output stderr....");
-		console.log(output);
-		console.log("console output....");
+		io.to(clientId).emit("stderr", { clientId: _id, output: output });
 	    });
 	    
 	    app.on('close', (code) => {
