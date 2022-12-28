@@ -5,6 +5,7 @@
 const { spawn, exec } = require('child_process');
 const io = require('socket.io')();
 const fs = require('fs');
+const config = require('./config');
 
 var _interface = {};
 var _status    = {};
@@ -278,5 +279,5 @@ function run ( client, data ) {
     }	
 }
 
-console.log("compiler running on port 3000");
-io.listen(3001);
+console.log("compiler running on port " + config.port);
+io.listen(config.port);
