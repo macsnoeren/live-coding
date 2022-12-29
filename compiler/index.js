@@ -96,7 +96,7 @@ function eventFile( data ) {
 	if ( "filename" in data && "contents" in data && validFilename(data.filename) ) {
 	    createDirectories(data.clientId, data.filename);
 	    console.log("eventFile: Created file '" + data.filename + "'");
-	    fs.writeFileSync("clientenvironments/" + data.clientId + "/src/" + data.filename, data.contents);
+	    fs.writeFileSync(config.compilerDir + "/" + data.clientId + "/src/" + data.filename, data.contents);
 
 	} else {
 	    console.log("eventFile: filename and/or data is not set.");
@@ -111,12 +111,12 @@ function createClientEnvironment (data) {
     if ( "clientId" in data && validClientId(data.clientId) ) {
 	io.emit("message", { clientId: data.clientId, message: "Create environment" });
 	console.log("Setting up client environment for client: " + data.clientId);
-	if ( !fs.existsSync("clientenvironments/" + data.clientId)) {
-            fs.mkdirSync("clientenvironments/" + data.clientId);
-	    fs.mkdirSync("clientenvironments/" + data.clientId + "/libs");
-	    fs.mkdirSync("clientenvironments/" + data.clientId + "/tests");
-	    fs.mkdirSync("clientenvironments/" + data.clientId + "/target");
-	    fs.mkdirSync("clientenvironments/" + data.clientId + "/src");
+	if ( !fs.existsSync(config.compilerDir + "/" + data.clientId)) {
+            fs.mkdirSync(config.compilerDir + "/" + data.clientId);
+	    fs.mkdirSync(config.compilerDir + "/" + data.clientId + "/libs");
+	    fs.mkdirSync(config.compilerDir + "/" + data.clientId + "/tests");
+	    fs.mkdirSync(config.compilerDir + "/" + data.clientId + "/target");
+	    fs.mkdirSync(config.compilerDir + "/" + data.clientId + "/src");
 
 	    /*
 	    if ( "project" in data ) {
@@ -152,8 +152,8 @@ class ` + data.project + ` {
 function cleanupClientEnvironment ( data ) {
     if ( "clientId" in data ) {
 	console.log("Cleaning up client environment for client: " + data.clientId);
-	if ( fs.existsSync("clientenvironments/" + data.clientId)) {
-            fs.rmSync("clientenvironments/" + data.clientId, { recursive: true, force: true });
+	if ( fs.existsSync(config.compilerDir + "/" + data.clientId)) {
+            fs.rmSync(config.compilerDir + "/" + data.clientId, { recursive: true, force: true });
 	    if ( data.clientId in _status ) {
 		delete _status[data.clientId];
 	    }
@@ -222,7 +222,7 @@ function run ( client, data ) {
 	_status[data.clientId] = "running";
 	
 	try {
-	    process.chdir("clientenvironments/" + data.clientId + "/target");
+	    process.chdir(config.compilerDir + "/" + data.clientId + "/target");
 	    
 	} catch (err) {
 	    console.log(err);
