@@ -1,7 +1,3 @@
-# docker image build --progress=plain . -t live-coding --no-cache
-# docker run -p 3001:3001 -it live-coding
-# docker run -p 3001:3001 -it live-coding /bin/bash
-
 FROM node:18
 
 WORKDIR /home/node/app
@@ -17,3 +13,8 @@ COPY *.json ./
 RUN mkdir clientenvironments
 
 CMD [ "npm", "start" ]
+
+# Documentation:
+# docker image build --progress=plain . -t live-coding --no-cache
+# docker run -p 3001:3001 -it live-coding
+# docker run -p 3001:3001 -it live-coding /bin/bash
