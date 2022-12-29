@@ -272,6 +272,15 @@ function run ( client, data ) {
 	    console.log('ERROR: ' + error);
 	    _status[data.clientId] = "idle";
 	}
+
+	try {
+	    process.chdir("../../..");
+	    
+	} catch (err) {
+	    console.log(err);
+	    _status[data.clientId] = "idle";
+	    return;
+	}
 	
     } else {
 	io.emit("message", { clientId: data.clientId, message: "Run call error" });
