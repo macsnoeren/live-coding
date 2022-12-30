@@ -61,7 +61,7 @@ describe('Live coding compiler', () => {
 	    expect(counter).toBe(2);
 	    expect(lastMessage).toStrictEqual({clientId: "testing", message: "Ready creating environment"});
 	    done();
-	}, 50);
+	}, 1000);
     });
     
     test('Send file', (done) => {
@@ -134,7 +134,7 @@ class MyJavaApplication {
 	    expect(logSpy.mock.calls).toContainEqual(["Compilation success!"]);
 	    expect(lastMessage).toStrictEqual({clientId: "testing", message: "Compile success"});
 	    done();
-	}, 2000);
+	}, 6000);
     });
     
     test('Run', (done) => {
