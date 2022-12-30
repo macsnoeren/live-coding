@@ -68,7 +68,7 @@ describe('Live coding compiler', () => {
 	let lastMessage = "";
 	socket.on('connect', () => {
 	    socket.emit("create", { clientId: "testing", project: "test" });
-	    socket.emit("file", { clientId: "client-id-123", filename: "myjavaapplication.java", contents: `
+	    socket.emit("file", { clientId: "testing", filename: "myjavaapplication.java", contents: `
 import static java.lang.System.*;
 import java.util.Scanner;
 
