@@ -8,7 +8,9 @@ jobs:
       - uses: actions/setup-node@v3.5.1
         with:
           node-version: '18'
+      - run: ls -l
       - run: cd compiler
+      - run: ls -l
       - run: npm install
       - run: npm update
       - run: npm test
