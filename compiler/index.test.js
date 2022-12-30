@@ -13,6 +13,8 @@ beforeAll((done) => {
  *  Cleanup WS & HTTP servers
  */
 afterAll((done) => {
+    index.io.disconnectSockets();
+    index.io.close();
     done();
 });
 
