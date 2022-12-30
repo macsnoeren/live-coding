@@ -239,7 +239,7 @@ function run ( client, data ) {
 	    });
 	    
 	    app.on('close', (code) => {
-		io.emit("message", { clientId: _id, message: "Got close messahe from application" });
+		io.emit("message", { clientId: _id, message: "Got close message from application" });
 		console.log("close recieved");
 		if ( data.clientId in _interface ) {
 		    _status[data.clientId] = "idle";
