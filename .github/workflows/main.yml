@@ -7,6 +7,8 @@ jobs:
       - uses: actions/setup-node@v3.5.1
         with:
           node-version: '18'
-      - run: ls -l
-#      - run: pip3 install -r ./smartnetwork/requirements.txt
-#      - run: cd smartnetwork; python3 ./main.py
+      - run: cd compiler
+      - run: npm install
+      - run: npm update
+      - run: npm test
+      
