@@ -1,5 +1,6 @@
 var Module = module.exports;
 
+Module.connect  = connect;
 Module.sendFile = sendFile;
 Module.create   = create;
 Module.compile  = compile;
@@ -11,34 +12,13 @@ const io = require("socket.io-client");
 
 const socket = io('ws://localhost:3001');
 
-socket.on("connect", () => {
-    console.log(socket.id);
-
-    // For automatic testing
-    create("client-id-123", "MyJavaApplication");
-    sendFile("client-id-123", "myjavaapplication.java", `
-import static java.lang.System.*;
-import java.util.Scanner;
-
-class MyJavaApplication {
-    public static void main(String[] args) {
-        System.out.println("Hello, World!"); 
-        Scanner scanner = new Scanner(System.in);
-        for ( int i=0; i < 2; i++ ) {
-            System.out.println( scanner.nextLine() );
-        }
-    }
+function connect () {
+    return myPromise = new Promise((resolve, reject) => {
+	socket.on("connect", () => {
+	    resolve(socket.id);	    
+	});
+    });
 }
-`);
-    compile("client-id-123");
-    setTimeout(() => {run("client-id-123");}, 2000);    
-    setTimeout(() => {stdin("client-id-123", "test\n");}, 4000);    
-    setTimeout(() => {stdin("client-id-123", "test\n");}, 6000);    
-    setTimeout(() => {stdin("client-id-123", "test\n");}, 8000);    
-    setTimeout(() => {stdin("client-id-123", "test\n");}, 10000);    
-    setTimeout(() => {stdin("client-id-123", "test\n");}, 12000);    
-    //cleanup("client-id-123");
-});
 
 socket.on("stdout", (data) => {
     console.log("stdout");
