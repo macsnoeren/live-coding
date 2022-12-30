@@ -14,7 +14,7 @@ Software eduction at this moment consist of theoretical (3 hours) and practical 
 ### Research
 Learning is a process that changes the knowledge, beliefs, behaviours or attitudes of students. The student are owner of their own process and is done together with fellow students and teachers. We would like to develop an effective tool to increase the learning performance of our students. Therefore we take the practical research approach. The hypothesis is that, when students get started right away with the theory with challenging assignments, together with direct feedback from the teacher, the learning performance improves. Using an active teaching method during the lessons, is one of the main focus points of this study. We will start with the following research question:
 
-_**What are the most (evidence based) effective education strategies for the education of software skills (coding) of students with no prior knowledge?**_
+_**What are the most (evidence based) effective education strategies for the education of software skills (coding) of students with no prior knowledge?**
 
 Currently, we have defined the following sub-questions:
 1. How can we get motivated students?
@@ -89,9 +89,37 @@ The teacher plays an important role in the learning performance of the students.
 ## Conclusion
 Effective learning strategies is to learn the concepts and theory and immediatly start practicing. A rule of thump could be around 30/70 percent. The teacher could teach a concept and after that give the studentsn some examples to explore the concept in practice. Based on how students are performing, it is possible to give good feedback to show the students where they are in their learning process.
 
-# 3. How can digital tool support these effective education strategies to learn coding skills?
+# 3. How can a digital tool support these effective education strategies to learn coding skills?
+Supporting students to effectively coding skills, we need to motivate the students to practice a lot. As we have learned by answering the first research question, it starts with the teacher and the tool needs to provide additional support. The following aspects needs to be provided by both the teacher and the tool:
+* Make a link with professional practice the students want to work in.
+* Share experiences of the professional practice with the students.
+* Important to have a good or improve the teacher and student relation
+* Have a positive attitude to towards the students.
+* Use relevant and challenging assignments.
+* Involve students in their own learning process.
 
+The following sections will describe more details about the specific subjects mentioned above.
 
+## Make a link with professional practice the students want to work in
+The teacher should tell the students in what way the lesson and module is connected to the proffesional practive. Why is this lesson required for the student. And more importantly, how should the students learns this in the best way. For programming a lot of practice is required. The tool should support the connection with the professional practice. When a new learning subject is started, the tool should give an introduction about the subject. Within this introduction, the connection with the professional practice should be clear. As an example, to become a great programmer, you need to have a good basis. Therefore, we start with the basic syntax and practice with simple algorithms before we dive deeper into the programming language. 
+
+## Share experiences of the professional practice with the students
+Be an enthousiast teacher! Tell stories about your experience within the professional practice. The tool could support this by anekdotes. It is not required, but the tool could tell something like "Did you know?" or "In the practice we use a lot of...".
+
+## Important to have a good or improve the teacher and student relation
+Make sure the students feel free to make mistakes. Students need to see learning programming as a big challenge and learning road. This road is not alway easy to drive and learning programming is not always easy. During the lectures and assignment, make sure that you connect with the students and ask how they feel and how they are doing. Support the students positively on the quest to become a great programmer!
+
+## Have a positive attitude to towards the students
+This is a bit the same as the previous subject. Be always positive and open to students. Eveything is good! Don't let the student fall, stay supportive and give feedback based on the learning (Hattie & Timperley, 2007).
+
+## Use relevant and challenging assignments
+While the tool will provide the challenging assignments, it is required to provide challenging assignments. The tool should be able to differentiate as well. Making sure, that the assignemts are not becoming too challenging. Students that require a bit more practice ona subject, they should get more practice. Based on the outcome of the assignments, the tool should decide which assignment should be next. That means that the teacher need to create a lot of assignments for all level of students. Only then students are able to do asssignment on their own challenging level.
+
+## Involve students in their own learning process
+In order to involve students in their own learning process, it is required to know where they are? Feedback to the students is essential. This can be done by the teacher off course. While the tool is also able to show statistics about how well a student is doing. Eventually, the teacher is eventually responsible. This teacher can use the statistics of the tool and encourage the student to go forward or pay attention on different aspects. For the tool, it would be nice that the student is able to see how well he or she is doing for the particular subject. Some kind of level. Furthermore, it is important to note that the student does not need the best level. When the students reaches some level after x time and y assessments, the tool could ask the student to go forward to the next subject. In a dashboard the student is able to see where some extra attention is needed.
+
+## Conclusion
+The conclusion is that the tool is not able to take over the teaching to the students. Teachers play an important rol in the learning of the student and is eventually responsible. The tool should support the teacher to increase the efficiency of the learning of the student. Most important is that the students recieves feedback to know where he or she stands in their own learning process. Some kind of level could be given to the student. The teacher is able to give feedback on the information of the tool. Wihtin the tool, the student can be given the issues that the tool found in the software code. Furthermore, the tool is able to show examples how the problem could have been solved. This can be done by videos. To determine the level of the student, 5 assignments can be given with points and a level can be derived. Time could also be used. If a student solves the assignment very fast, you know that the student understand the subject. When a students takes more time, he or she finds the assignment difficult. Therefore, time should be logged for each assignment.
 
 # 4. What kind of digital tools can be developed to support the teacher and students to develop their coding skills?
 
