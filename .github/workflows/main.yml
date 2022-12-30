@@ -1,7 +1,10 @@
-name: deploy
-on: [push]
+name: live-coding
+on:
+  push:
+    branches:
+      - main
 jobs:
-  test:
+  compiler-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.6.0
