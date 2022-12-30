@@ -117,24 +117,6 @@ function createClientEnvironment (data) {
 	    fs.mkdirSync(config.compilerDir + "/" + data.clientId + "/tests");
 	    fs.mkdirSync(config.compilerDir + "/" + data.clientId + "/target");
 	    fs.mkdirSync(config.compilerDir + "/" + data.clientId + "/src");
-
-	    /*
-	    if ( "project" in data ) {
-		eventFile({clientId: data.clientId, filename: data.project + ".java", contents: `
-import static java.lang.System.*;
-import java.util.Scanner;
-
-class ` + data.project + ` {
-    public static void main(String[] args) {
-        System.out.println("Hello, World!"); 
-        Scanner scanner = new Scanner(System.in);
-        for ( int i=0; i < 2; i++ ) {
-            System.out.println( scanner.nextLine() );
-        }
-    }
-}
-`});
-	    }*/
 	}
 
 	if ( !(data.clientId in _status) ) {
