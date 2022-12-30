@@ -9,7 +9,7 @@ jobs:
         with:
           node-version: '18'
       - run: ls -l
-      - run: cd compiler
+      - run: cd compiler && ls -ls
       - run: ls -l
       - run: npm install
       - run: npm update
