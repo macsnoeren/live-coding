@@ -1,6 +1,7 @@
 /*********************************/
 /* Compiler nodejs application   */
 /*********************************/
+var Module = module.exports;
 
 const { spawn, exec } = require('child_process');
 const io = require('socket.io')();
@@ -9,6 +10,8 @@ const config = require('./config');
 
 var _interface = {};
 var _status    = {};
+
+Module.io  = io;
 
 io.on('connection', client => {
     client.on('create',  createClientEnvironment  );
@@ -88,7 +91,6 @@ function getAnnotations ( lines ) {
 
     return annotations;
 }
-
 
 // Process the file event, it will create and store the file into the clientenvironment.
 function eventFile( data ) {
