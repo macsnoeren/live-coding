@@ -177,7 +177,7 @@ class MyJavaApplication {
 	setTimeout(() => {
 	    expect(socket.id).toBeDefined();
 	    expect(lastMessage).toStrictEqual({clientId: "testing", message: "Got close message from application"});
-	    expect(lastStdout.output).toStrictEqual("Testregel 2\n");
+	    expect(lastStdout.output).toMatch("Testregel 2");
 	    done();
 	}, 6000);
     });
