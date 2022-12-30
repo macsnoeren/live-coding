@@ -4,5 +4,4 @@ This compiler is responsible for compiling and running the code. It uses a web s
 
 # Test framework
 https://brightsec.com/blog/unit-testing-in-nodejs/
-
 npm install jest --save-dev
